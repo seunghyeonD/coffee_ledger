@@ -4,11 +4,13 @@ import { useState } from 'react';
 import { useStore } from '@/lib/store';
 import { formatMoney } from '@/lib/utils';
 import Modal from '@/components/Modal';
+import NearbySearch from '@/components/NearbySearch';
 
 export default function Shops({ showToast }) {
   const { shops, addShop, updateShop, deleteShop, addMenu, updateMenu, deleteMenu } = useStore();
   const [shopModal, setShopModal] = useState(null);
   const [menuModal, setMenuModal] = useState(null);
+  const [showNearby, setShowNearby] = useState(false);
 
   const handleSaveShop = async (e) => {
     e.preventDefault();
@@ -68,9 +70,14 @@ export default function Shops({ showToast }) {
     <>
       <div className="page-header">
         <h1>메뉴 관리</h1>
-        <button className="btn btn-primary" onClick={() => setShopModal({ name: '', color: '#4a90d9' })}>
-          + 업체 추가
-        </button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button className="btn" onClick={() => setShowNearby(true)}>
+            {'\u{1F4CD}'} 주변 카페 찾기
+          </button>
+          <button className="btn btn-primary" onClick={() => setShopModal({ name: '', color: '#4a90d9' })}>
+            + 업체 추가
+          </button>
+        </div>
       </div>
 
       <div className="shops-grid">
@@ -107,6 +114,22 @@ export default function Shops({ showToast }) {
           </div>
         ))}
       </div>
+
+      {/* Nearby Search */}
+      {showNearby && (
+        <NearbySearch
+          onClose={() => setShowNearby(false)}
+          onSelect={async (cafe) => {
+            try {
+              await addShop(cafe.name, '#4a90d9');
+              showToast(`${cafe.name}이(가) 추가되었습니다!`);
+              setShowNearby(false);
+            } catch (e) {
+              showToast('오류: ' + (e.message || '추가 실패'));
+            }
+          }}
+        />
+      )}
 
       {/* Shop Modal */}
       <Modal open={!!shopModal} onClose={() => setShopModal(null)} title={shopModal?.id ? '업체 수정' : '업체 추가'}>
