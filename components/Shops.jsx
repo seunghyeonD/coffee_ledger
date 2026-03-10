@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useStore } from '@/lib/store';
 import { formatMoney } from '@/lib/utils';
 import Modal from '@/components/Modal';
@@ -11,6 +11,15 @@ export default function Shops({ showToast }) {
   const [shopModal, setShopModal] = useState(null);
   const [menuModal, setMenuModal] = useState(null);
   const [showNearby, setShowNearby] = useState(false);
+  const [expandedShop, setExpandedShop] = useState(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth <= 480);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
   const handleSaveShop = async (e) => {
     e.preventDefault();
@@ -82,10 +91,18 @@ export default function Shops({ showToast }) {
 
       <div className="shops-grid">
         {shops.map(s => (
-          <div key={s.id} className="shop-card">
-            <div className="shop-card-header" style={{ background: s.color }}>
-              <h3>{s.name}</h3>
-              <div className="shop-actions">
+          <div key={s.id} className={`shop-card ${isMobile && expandedShop !== s.id ? 'shop-collapsed' : ''}`}>
+            <div
+              className="shop-card-header"
+              style={{ background: s.color }}
+              onClick={() => isMobile && setExpandedShop(expandedShop === s.id ? null : s.id)}
+            >
+              <h3>
+                {s.name}
+                {isMobile && <span className="shop-toggle-icon">{expandedShop === s.id ? '\u25B2' : '\u25BC'}</span>}
+                {isMobile && <span className="shop-menu-count">{s.menus.length}개 메뉴</span>}
+              </h3>
+              <div className="shop-actions" onClick={e => e.stopPropagation()}>
                 <button className="btn btn-sm" onClick={() => setShopModal({ id: s.id, name: s.name, color: s.color })}>수정</button>
                 <button className="btn btn-sm" onClick={() => handleDeleteShop(s.id)}>삭제</button>
               </div>

@@ -545,6 +545,10 @@ body {
 .shop-card-header h3 {
   font-size: 16px;
 }
+.shop-toggle-icon,
+.shop-menu-count {
+  display: none;
+}
 
 .shop-actions {
   display: flex;
@@ -1716,6 +1720,27 @@ body {
   .shops-grid {
     grid-template-columns: 1fr;
     gap: 12px;
+  }
+  .shop-collapsed .shop-menu-list {
+    display: none;
+  }
+  .shop-card-header {
+    cursor: pointer;
+  }
+  .shop-toggle-icon {
+    font-size: 10px;
+    margin-left: 6px;
+    opacity: 0.8;
+  }
+  .shop-menu-count {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 400;
+    margin-left: 8px;
+    opacity: 0.8;
+  }
+  .shop-card {
+    max-height: none;
   }
 
   /* History filters */
