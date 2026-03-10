@@ -507,8 +507,11 @@ body {
 
 .menu-selector {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 10px;
+  max-height: 330px;
+  overflow-y: auto;
+  padding-right: 4px;
 }
 
 .menu-select-btn {
@@ -1302,7 +1305,7 @@ body {
   .modal-header { padding: 12px 16px; }
   .modal-body { padding: 16px; }
   .shop-selector { grid-template-columns: repeat(2, 1fr); gap: 8px; }
-  .menu-selector { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .menu-selector { grid-template-columns: repeat(2, 1fr); gap: 8px; max-height: 280px; }
   .member-selector { grid-template-columns: repeat(2, 1fr); gap: 6px; }
 
   /* Toast */
