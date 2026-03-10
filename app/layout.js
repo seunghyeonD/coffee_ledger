@@ -1,5 +1,6 @@
 import { Noto_Sans_KR } from 'next/font/google';
 import './globals.css';
+import { AuthProvider } from '@/lib/auth';
 import { StoreProvider } from '@/lib/store';
 
 const notoSansKR = Noto_Sans_KR({
@@ -16,9 +17,11 @@ export default function RootLayout({ children }) {
   return (
     <html lang="ko">
       <body className={notoSansKR.className}>
-        <StoreProvider>
-          {children}
-        </StoreProvider>
+        <AuthProvider>
+          <StoreProvider>
+            {children}
+          </StoreProvider>
+        </AuthProvider>
       </body>
     </html>
   );

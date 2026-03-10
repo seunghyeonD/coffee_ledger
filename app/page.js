@@ -1,7 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useAuth } from '@/lib/auth';
 import { useStore } from '@/lib/store';
+import LoginPage from '@/components/LoginPage';
+import CompanySelectPage from '@/components/CompanySelectPage';
 import Sidebar from '@/components/Sidebar';
 import Dashboard from '@/components/Dashboard';
 import Members from '@/components/Members';
@@ -11,7 +14,8 @@ import Summary from '@/components/Summary';
 import Toast from '@/components/Toast';
 
 export default function Home() {
-  const { loaded, init } = useStore();
+  const { user, company, loading: authLoading } = useAuth();
+  const { loaded, init, reset } = useStore();
   const [page, setPage] = useState('dashboard');
   const [toast, setToast] = useState('');
   const [error, setError] = useState(null);
@@ -21,10 +25,32 @@ export default function Home() {
     setTimeout(() => setToast(''), 2500);
   };
 
+  // 기업 선택 시 데이터 로드
   useEffect(() => {
-    init().catch(e => setError(e.message || 'Supabase 연결 실패'));
-  }, [init]);
+    if (company) {
+      setError(null);
+      init(company.id).catch(e => setError(e.message || 'Supabase 연결 실패'));
+    } else {
+      reset();
+    }
+  }, [company, init, reset]);
 
+  // 로딩 중
+  if (authLoading) {
+    return (
+      <div className="auth-page">
+        <div className="auth-loading">데이터를 불러오는 중...</div>
+      </div>
+    );
+  }
+
+  // 미로그인
+  if (!user) return <LoginPage />;
+
+  // 기업 미선택
+  if (!company) return <CompanySelectPage />;
+
+  // 데이터 에러
   if (error) {
     return (
       <div className="app-layout">
@@ -39,6 +65,7 @@ export default function Home() {
     );
   }
 
+  // 데이터 로딩 중
   if (!loaded) {
     return (
       <div className="app-layout">

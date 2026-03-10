@@ -1,7 +1,7 @@
 'use client';
 
+import { useAuth } from '@/lib/auth';
 import { useStore } from '@/lib/store';
-import { formatMoney, formatDate, getWeeksInMonth, DAY_NAMES } from '@/lib/utils';
 
 const NAV_ITEMS = [
   { key: 'dashboard', icon: '\u{1F4C5}', label: '대시보드', mobileLabel: '홈' },
@@ -12,6 +12,7 @@ const NAV_ITEMS = [
 ];
 
 export default function Sidebar({ page, setPage, showToast }) {
+  const { company, signOut, clearCompany } = useAuth();
   const store = useStore();
 
   const handleExport = () => {
@@ -20,12 +21,26 @@ export default function Sidebar({ page, setPage, showToast }) {
     });
   };
 
+  const handleSignOut = async () => {
+    await signOut();
+  };
+
   return (
     <nav className="sidebar">
       <div className="sidebar-logo">
         <span>{'\u2615'}</span>
         <span className="logo-text">커피 대장부</span>
       </div>
+
+      {company && (
+        <div className="sidebar-company">
+          <span className="company-name">{company.name}</span>
+          <button className="btn-switch-company" onClick={clearCompany} title="기업 전환">
+            {'\u{1F504}'}
+          </button>
+        </div>
+      )}
+
       <ul className="nav-menu">
         {NAV_ITEMS.map(item => (
           <li key={item.key}>
@@ -43,6 +58,9 @@ export default function Sidebar({ page, setPage, showToast }) {
       <div className="sidebar-footer">
         <button className="btn-export" onClick={handleExport}>
           {'\u{1F4E5}'} 엑셀 내보내기
+        </button>
+        <button className="btn-logout" onClick={handleSignOut}>
+          {'\u{1F6AA}'} 로그아웃
         </button>
       </div>
     </nav>
