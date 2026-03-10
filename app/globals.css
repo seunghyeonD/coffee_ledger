@@ -1742,6 +1742,28 @@ body {
   .shop-card {
     max-height: none;
   }
+  .menu-item {
+    font-size: 12px;
+    gap: 4px;
+  }
+  .menu-item-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .menu-item-price {
+    white-space: nowrap;
+    font-size: 12px;
+  }
+  .menu-item-actions {
+    margin-left: 4px;
+  }
+  .menu-item-actions .btn-sm {
+    padding: 2px 6px;
+    font-size: 11px;
+  }
 
   /* History filters */
   .history-filters {
@@ -1750,11 +1772,16 @@ body {
 
   /* Table */
   .table-wrap {
-    font-size: 12px;
+    font-size: 11px;
   }
   .table-wrap th,
   .table-wrap td {
-    padding: 8px 10px;
+    padding: 6px 6px;
+    white-space: nowrap;
+  }
+  .table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   /* Summary */
