@@ -66,7 +66,17 @@ export default function Dashboard({ showToast }) {
         <h1>대시보드</h1>
         <div className="account-info">
           <span className="account-label">입금계좌</span>
-          <span className="account-number">우리은행 1002963587753</span>
+          <button
+            className="account-copy-btn"
+            onClick={() => {
+              navigator.clipboard.writeText('1002963587753').then(() => {
+                showToast('계좌번호가 복사되었습니다');
+              });
+            }}
+          >
+            우리은행 1002963587753
+            <span className="copy-icon">{'\u{1F4CB}'}</span>
+          </button>
         </div>
       </div>
 

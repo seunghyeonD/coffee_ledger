@@ -136,7 +136,21 @@ body {
 }
 
 .account-label { font-weight: 600; color: var(--primary); }
-.account-number { color: var(--text-secondary); user-select: all; }
+.account-copy-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: var(--transition);
+}
+.account-copy-btn:hover { background: var(--bg); color: var(--text); }
+.copy-icon { font-size: 12px; }
 
 /* ===== Buttons ===== */
 .btn {
