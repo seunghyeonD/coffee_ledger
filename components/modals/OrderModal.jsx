@@ -11,6 +11,7 @@ export default function OrderModal({ date, onClose, showToast }) {
   const [shopId, setShopId] = useState(null);
   const [menuName, setMenuName] = useState('');
   const [menuPrice, setMenuPrice] = useState(0);
+  const [menuSearch, setMenuSearch] = useState('');
 
   const d = new Date(date);
   const dateLabel = `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일 (${DAY_NAMES[d.getDay()]})`;
@@ -90,15 +91,27 @@ export default function OrderModal({ date, onClose, showToast }) {
         <div className="order-step">
           <h3>
             2. 메뉴 선택
-            <button className="btn-link" onClick={() => setStep(1)}>&larr; 업체 다시 선택</button>
+            <button className="btn-link" onClick={() => { setStep(1); setMenuSearch(''); }}>&larr; 업체 다시 선택</button>
           </h3>
+          <input
+            type="text"
+            className="menu-search-input"
+            placeholder="메뉴 검색..."
+            value={menuSearch}
+            onChange={e => setMenuSearch(e.target.value)}
+          />
           <div className="menu-selector">
-            {selectedShop.menus.map(m => (
-              <button key={m.id} className="menu-select-btn" onClick={() => handleMenuSelect(m)}>
-                <div className="menu-btn-name">{m.name}</div>
-                <div className="menu-btn-price">{m.price > 0 ? formatMoney(m.price) : '직접 입력'}</div>
-              </button>
-            ))}
+            {selectedShop.menus
+              .filter(m => !menuSearch || m.name.toLowerCase().includes(menuSearch.toLowerCase()))
+              .map(m => (
+                <button key={m.id} className="menu-select-btn" onClick={() => handleMenuSelect(m)}>
+                  <div className="menu-btn-name">{m.name}</div>
+                  <div className="menu-btn-price">{m.price > 0 ? formatMoney(m.price) : '직접 입력'}</div>
+                </button>
+              ))}
+            {selectedShop.menus.filter(m => !menuSearch || m.name.toLowerCase().includes(menuSearch.toLowerCase())).length === 0 && (
+              <div className="empty-state" style={{ gridColumn: '1 / -1' }}>검색 결과가 없습니다.</div>
+            )}
           </div>
         </div>
       )}
