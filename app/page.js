@@ -39,7 +39,15 @@ export default function Home() {
   if (authLoading) {
     return (
       <div className="auth-page">
-        <div className="auth-loading">데이터를 불러오는 중...</div>
+        <div className="coffee-loader">
+          <div className="coffee-cup">
+            <div className="coffee-liquid"></div>
+            <div className="coffee-steam">
+              <span></span><span></span><span></span>
+            </div>
+          </div>
+          <p>커피 준비 중...</p>
+        </div>
       </div>
     );
   }
@@ -68,8 +76,16 @@ export default function Home() {
   // 데이터 로딩 중
   if (!loaded) {
     return (
-      <div className="app-layout">
-        <div className="loading-screen">데이터를 불러오는 중...</div>
+      <div className="auth-page">
+        <div className="coffee-loader">
+          <div className="coffee-cup">
+            <div className="coffee-liquid"></div>
+            <div className="coffee-steam">
+              <span></span><span></span><span></span>
+            </div>
+          </div>
+          <p>데이터를 불러오는 중...</p>
+        </div>
       </div>
     );
   }
