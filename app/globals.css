@@ -94,6 +94,7 @@ body {
 .nav-item:hover { background: var(--sidebar-hover); }
 .nav-item.active { background: var(--sidebar-active); font-weight: 600; }
 .nav-icon { font-size: 18px; width: 24px; text-align: center; }
+.nav-label-mobile { display: none; }
 
 .sidebar-footer {
   padding: 16px;
@@ -106,6 +107,8 @@ body {
   margin-left: 240px;
   padding: 32px;
   max-width: 1200px;
+  min-width: 0;
+  overflow-x: hidden;
 }
 
 .page-header {
@@ -731,11 +734,17 @@ body {
   box-shadow: var(--shadow);
   padding: 24px;
   margin-bottom: 24px;
+  overflow: hidden;
 }
 
 .summary-table-section h3 { font-size: 16px; font-weight: 600; margin-bottom: 16px; }
 
-.summary-week-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.summary-table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.summary-week-table { width: 100%; border-collapse: collapse; font-size: 13px; white-space: nowrap; }
 
 .summary-week-table th {
   background: #e8e2f0;
@@ -786,13 +795,154 @@ body {
 }
 
 /* ===== Responsive ===== */
+
+/* Tablet */
 @media (max-width: 768px) {
   .sidebar { width: 60px; }
   .sidebar .logo-text, .nav-item .nav-label { display: none; }
   .sidebar-logo { justify-content: center; padding: 16px 8px; }
   .nav-item { justify-content: center; padding: 12px; }
+  .sidebar-footer { padding: 8px; }
+  .btn-export { font-size: 0; padding: 10px; }
+  .btn-export::before { content: '\1F4E5'; font-size: 16px; }
+
   .main-content { margin-left: 60px; padding: 16px; }
   .balance-cards { grid-template-columns: repeat(2, 1fr); }
   .calendar-cell { min-height: 60px; padding: 4px; }
   .cell-total { display: none; }
+  .calendar-header h2 { font-size: 17px; min-width: 130px; }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  /* Sidebar → bottom tab bar */
+  .sidebar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    top: auto;
+    width: 100%;
+    height: 56px;
+    flex-direction: row;
+    z-index: 900;
+    overflow: hidden;
+  }
+  .sidebar-logo { display: none; }
+  .sidebar-footer { display: none; }
+  .nav-menu {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    gap: 0;
+  }
+  .nav-menu li { flex: 1; }
+  .nav-item {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 6px 0;
+    gap: 2px;
+    border-radius: 0;
+  }
+  .nav-item .nav-label { display: none; }
+  .nav-item .nav-label-mobile {
+    display: block;
+    font-size: 9px;
+    white-space: nowrap;
+  }
+  .nav-icon { font-size: 18px; width: auto; }
+
+  .main-content {
+    margin-left: 0;
+    padding: 16px 12px 72px 12px;
+  }
+
+  /* Page header */
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .page-header h1 { font-size: 22px; }
+  .account-info { width: 100%; font-size: 12px; }
+
+  /* Balance cards */
+  .balance-cards {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .card { padding: 14px; }
+  .card-value { font-size: 18px; }
+  .card-label { font-size: 11px; }
+
+  /* Calendar */
+  .calendar-section { padding: 12px; margin-bottom: 16px; }
+  .calendar-header { gap: 6px; margin-bottom: 12px; }
+  .calendar-header h2 { font-size: 16px; min-width: auto; }
+  .btn-icon { width: 30px; height: 30px; font-size: 14px; }
+  .calendar-day-header { font-size: 11px; padding: 4px 0; }
+  .calendar-cell { min-height: 48px; padding: 3px; }
+  .cell-date { font-size: 11px; margin-bottom: 2px; }
+  .cell-order-count { font-size: 8px; padding: 0 4px; }
+  .cell-total { display: none; }
+
+  /* Quick balances */
+  .quick-balances { padding: 16px; }
+  .balance-list { grid-template-columns: 1fr; gap: 6px; }
+  .balance-item { padding: 8px 10px; font-size: 12px; }
+
+  /* Members */
+  .members-grid { grid-template-columns: 1fr; gap: 12px; }
+  .member-card { padding: 16px; }
+  .member-balance-value { font-size: 18px; }
+
+  /* Shops */
+  .shops-grid { grid-template-columns: 1fr; gap: 12px; }
+
+  /* History filters */
+  .history-filters { flex-wrap: wrap; }
+
+  /* Table */
+  .table-wrap { font-size: 12px; }
+  .table-wrap th, .table-wrap td { padding: 8px 10px; }
+
+  /* Summary */
+  .summary-table-section { padding: 0; overflow: hidden; }
+  .summary-table-section h3 { padding: 12px 12px 8px; margin-bottom: 0; font-size: 14px; }
+  .summary-table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+  }
+  .summary-week-table { font-size: 11px; min-width: 0; width: max-content; }
+  .summary-week-table th, .summary-week-table td { padding: 6px 8px; min-width: 58px; }
+  .summary-week-table th:first-child,
+  .summary-week-table td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    min-width: 90px;
+    font-size: 11px;
+  }
+  .summary-week-table th:first-child { background: #e8e2f0; }
+  .summary-week-table td:first-child { background: var(--card-bg); box-shadow: 2px 0 4px rgba(0,0,0,0.05); }
+  .summary-week-table tr:hover td:first-child { background: #faf8f5; }
+
+  /* Modal */
+  .modal-content { width: 95%; max-height: 85vh; }
+  .modal-header { padding: 12px 16px; }
+  .modal-body { padding: 16px; }
+  .shop-selector { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .menu-selector { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .member-selector { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+
+  /* Toast */
+  .toast { bottom: 72px; right: 12px; left: 12px; text-align: center; font-size: 13px; }
 }
