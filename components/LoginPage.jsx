@@ -9,6 +9,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPw, setConfirmPw] = useState('');
+  const [inviteCode, setInviteCode] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [signUpDone, setSignUpDone] = useState(false);
@@ -24,6 +25,11 @@ export default function LoginPage() {
 
     if (password.length < 6) {
       setError('비밀번호는 6자 이상이어야 합니다.');
+      return;
+    }
+
+    if (isSignUp && inviteCode !== process.env.NEXT_PUBLIC_INVITE_CODE) {
+      setError('승인코드가 올바르지 않습니다.');
       return;
     }
 
@@ -90,16 +96,28 @@ export default function LoginPage() {
             />
           </div>
           {isSignUp && (
-            <div className="form-group">
-              <label>비밀번호 확인</label>
-              <input
-                type="password"
-                value={confirmPw}
-                onChange={e => setConfirmPw(e.target.value)}
-                placeholder="비밀번호 재입력"
-                required
-              />
-            </div>
+            <>
+              <div className="form-group">
+                <label>비밀번호 확인</label>
+                <input
+                  type="password"
+                  value={confirmPw}
+                  onChange={e => setConfirmPw(e.target.value)}
+                  placeholder="비밀번호 재입력"
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>승인코드</label>
+                <input
+                  type="text"
+                  value={inviteCode}
+                  onChange={e => setInviteCode(e.target.value)}
+                  placeholder="승인코드를 입력하세요"
+                  required
+                />
+              </div>
+            </>
           )}
 
           {error && <p className="auth-error">{error}</p>}
