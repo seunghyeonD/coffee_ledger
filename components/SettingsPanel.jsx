@@ -7,8 +7,8 @@ import NotificationSettings from './NotificationSettings';
 
 const TABS = [
   { key: 'notifications', label: '알림' },
-  { key: 'export', label: '보고서' },
-  { key: 'account', label: '계정' },
+  { key: 'export', label: '보고서', mobileOnly: true },
+  { key: 'account', label: '계정', mobileOnly: true },
 ];
 
 export default function SettingsPage({ showToast }) {
@@ -32,7 +32,7 @@ export default function SettingsPage({ showToast }) {
         {TABS.map(tab => (
           <button
             key={tab.key}
-            className={`settings-tab ${activeTab === tab.key ? 'active' : ''}`}
+            className={`settings-tab ${activeTab === tab.key ? 'active' : ''} ${tab.mobileOnly ? 'mobile-only-tab' : ''}`}
             onClick={() => setActiveTab(tab.key)}
           >
             {tab.label}

@@ -2016,6 +2016,16 @@ body {
   border-bottom-color: var(--primary);
 }
 
+.mobile-only-tab {
+  display: none;
+}
+
+@media (max-width: 480px) {
+  .mobile-only-tab {
+    display: block;
+  }
+}
+
 .settings-body {
   flex: 1;
   overflow-y: auto;
