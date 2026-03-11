@@ -19,12 +19,15 @@ export default function FCMInitializer({ showToast }) {
 
     let unsubscribe = () => {};
 
-    import('@/lib/fcm').then(({ setupForegroundListener }) => {
-      setupForegroundListener((title, body) => {
+    import('@/lib/fcm').then(async ({ requestNotificationPermission, setupForegroundListener }) => {
+      // 자동으로 알림 권한 요청 + 토큰 저장
+      await requestNotificationPermission(user.id, companyId);
+
+      // 포그라운드 메시지 리스너
+      const unsub = await setupForegroundListener((title, body) => {
         if (showToast) showToast(`${title}: ${body}`);
-      }).then(unsub => {
-        unsubscribe = unsub;
       });
+      unsubscribe = unsub;
     }).catch(() => {});
 
     return () => unsubscribe();
