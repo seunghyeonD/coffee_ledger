@@ -885,6 +885,13 @@ body {
   padding: 4px;
   cursor: pointer;
 }
+.form-group input[type="month"],
+.form-group input[type="date"] {
+  -webkit-appearance: none;
+  appearance: none;
+  min-height: 44px;
+  width: 100%;
+}
 
 .form-actions {
   display: flex;
