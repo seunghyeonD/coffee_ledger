@@ -10,7 +10,7 @@ import {
   upsertNotificationPreferences,
 } from '@/lib/fcm';
 
-export default function NotificationSettings({ showToast }) {
+export default function NotificationSettings({ showToast, embedded = false }) {
   const { user } = useAuth();
   const { companyId } = useStore();
   const [enabled, setEnabled] = useState(false);
@@ -104,16 +104,14 @@ export default function NotificationSettings({ showToast }) {
   };
 
   if (loading) {
-    return <div className="page-section"><p>로딩 중...</p></div>;
+    return embedded ? <p>로딩 중...</p> : <div className="page-section"><p>로딩 중...</p></div>;
   }
 
   const notSupported = typeof window !== 'undefined' && !('Notification' in window);
   const denied = permissionState === 'denied';
 
-  return (
-    <div className="page-section">
-      <h2 className="page-title">알림 설정</h2>
-
+  const content = (
+    <>
       {notSupported && (
         <div className="notification-warning">
           이 브라우저는 푸시 알림을 지원하지 않습니다.
@@ -191,6 +189,15 @@ export default function NotificationSettings({ showToast }) {
           </>
         )}
       </div>
+    </>
+  );
+
+  if (embedded) return content;
+
+  return (
+    <div className="page-section">
+      <h2 className="page-title">알림 설정</h2>
+      {content}
     </div>
   );
 }
