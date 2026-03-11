@@ -17,7 +17,7 @@ export default function NotificationSettings({ showToast, embedded = false }) {
   const [orderEnabled, setOrderEnabled] = useState(true);
   const [lowBalanceEnabled, setLowBalanceEnabled] = useState(true);
   const [threshold, setThreshold] = useState(5000);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [permissionState, setPermissionState] = useState('default');
 
   useEffect(() => {
@@ -28,24 +28,22 @@ export default function NotificationSettings({ showToast, embedded = false }) {
 
   useEffect(() => {
     if (!user || !companyId) return;
-    loadPreferences();
-  }, [user, companyId]);
-
-  const loadPreferences = async () => {
+    let cancelled = false;
     setLoading(true);
-    try {
-      const prefs = await getNotificationPreferences(user.id, companyId);
-      if (prefs) {
-        setEnabled(true);
-        setOrderEnabled(prefs.order_registered_enabled ?? true);
-        setLowBalanceEnabled(prefs.low_balance_enabled ?? true);
-        setThreshold(prefs.low_balance_threshold ?? 5000);
-      }
-    } catch (e) {
-      console.error('Failed to load notification preferences:', e);
-    }
-    setLoading(false);
-  };
+    getNotificationPreferences(user.id, companyId)
+      .then(prefs => {
+        if (cancelled) return;
+        if (prefs) {
+          setEnabled(true);
+          setOrderEnabled(prefs.order_registered_enabled ?? true);
+          setLowBalanceEnabled(prefs.low_balance_enabled ?? true);
+          setThreshold(prefs.low_balance_threshold ?? 5000);
+        }
+      })
+      .catch(() => {})
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [user, companyId]);
 
   const handleToggleNotifications = async () => {
     if (!enabled) {
