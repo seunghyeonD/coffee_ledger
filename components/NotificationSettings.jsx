@@ -17,7 +17,6 @@ export default function NotificationSettings({ showToast, embedded = false }) {
   const [orderEnabled, setOrderEnabled] = useState(true);
   const [lowBalanceEnabled, setLowBalanceEnabled] = useState(true);
   const [threshold, setThreshold] = useState(5000);
-  const [loading, setLoading] = useState(false);
   const [permissionState, setPermissionState] = useState('default');
 
   useEffect(() => {
@@ -29,7 +28,6 @@ export default function NotificationSettings({ showToast, embedded = false }) {
   useEffect(() => {
     if (!user || !companyId) return;
     let cancelled = false;
-    setLoading(true);
     getNotificationPreferences(user.id, companyId)
       .then(prefs => {
         if (cancelled) return;
@@ -40,8 +38,7 @@ export default function NotificationSettings({ showToast, embedded = false }) {
           setThreshold(prefs.low_balance_threshold ?? 5000);
         }
       })
-      .catch(() => {})
-      .finally(() => { if (!cancelled) setLoading(false); });
+      .catch(() => {});
     return () => { cancelled = true; };
   }, [user, companyId]);
 
@@ -100,10 +97,6 @@ export default function NotificationSettings({ showToast, embedded = false }) {
   const handleThresholdBlur = async () => {
     await savePreferences({ low_balance_threshold: threshold });
   };
-
-  if (loading) {
-    return embedded ? <p>로딩 중...</p> : <div className="page-section"><p>로딩 중...</p></div>;
-  }
 
   const notSupported = typeof window !== 'undefined' && !('Notification' in window);
   const denied = permissionState === 'denied';

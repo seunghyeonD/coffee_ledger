@@ -11,7 +11,7 @@ import Members from '@/components/Members';
 import Shops from '@/components/Shops';
 import History from '@/components/History';
 import Summary from '@/components/Summary';
-import SettingsPanel from '@/components/SettingsPanel';
+import SettingsPage from '@/components/SettingsPanel';
 import FCMInitializer from '@/components/FCMInitializer';
 import Toast from '@/components/Toast';
 
@@ -21,7 +21,6 @@ export default function Home() {
   const [page, setPage] = useState('dashboard');
   const [toast, setToast] = useState('');
   const [error, setError] = useState(null);
-  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const showToast = (msg) => {
     setToast(msg);
@@ -97,16 +96,13 @@ export default function Home() {
     <div className="app-layout">
       <Sidebar page={page} setPage={setPage} showToast={showToast} />
       <main className="main-content">
-        <button className="mobile-settings-btn" onClick={() => setSettingsOpen(true)}>
-          {'\u2699\uFE0F'}
-        </button>
         {page === 'dashboard' && <Dashboard showToast={showToast} />}
         {page === 'members' && <Members showToast={showToast} />}
         {page === 'shops' && <Shops showToast={showToast} />}
         {page === 'history' && <History showToast={showToast} />}
         {page === 'summary' && <Summary />}
+        {page === 'settings' && <SettingsPage showToast={showToast} />}
       </main>
-      <SettingsPanel open={settingsOpen} onClose={() => setSettingsOpen(false)} showToast={showToast} />
       <FCMInitializer showToast={showToast} />
       <Toast message={toast} />
     </div>
