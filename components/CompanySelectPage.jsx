@@ -4,9 +4,10 @@ import { useState } from 'react';
 import { useAuth } from '@/lib/auth';
 
 export default function CompanySelectPage() {
-  const { userCompanies, selectCompany, createCompany, signOut } = useAuth();
-  const [showCreate, setShowCreate] = useState(false);
+  const { userCompanies, selectCompany, createCompany, joinCompany, signOut } = useAuth();
+  const [mode, setMode] = useState(null); // null | 'create' | 'join'
   const [name, setName] = useState('');
+  const [inviteCode, setInviteCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -22,6 +23,27 @@ export default function CompanySelectPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleJoin = async (e) => {
+    e.preventDefault();
+    if (!inviteCode.trim()) return;
+    setLoading(true);
+    setError('');
+    try {
+      await joinCompany(inviteCode.trim());
+    } catch (err) {
+      setError(err.message || '기업 참여에 실패했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resetMode = () => {
+    setMode(null);
+    setError('');
+    setName('');
+    setInviteCode('');
   };
 
   return (
@@ -48,14 +70,48 @@ export default function CompanySelectPage() {
           </div>
         )}
 
-        {!showCreate ? (
-          <button
-            className="btn btn-primary auth-btn"
-            onClick={() => setShowCreate(true)}
-          >
-            + 새 기업 만들기
-          </button>
-        ) : (
+        {mode === null && (
+          <div className="company-actions">
+            <button
+              className="btn btn-primary auth-btn"
+              onClick={() => setMode('join')}
+            >
+              초대 코드로 참여
+            </button>
+            <button
+              className="btn auth-btn"
+              onClick={() => setMode('create')}
+            >
+              + 새 기업 만들기
+            </button>
+          </div>
+        )}
+
+        {mode === 'join' && (
+          <form onSubmit={handleJoin} className="company-create-form">
+            <div className="form-group">
+              <label>초대 코드</label>
+              <input
+                type="text"
+                value={inviteCode}
+                onChange={e => setInviteCode(e.target.value)}
+                placeholder="예: ABC123"
+                required
+                autoFocus
+                style={{ textTransform: 'uppercase' }}
+              />
+            </div>
+            {error && <p className="auth-error">{error}</p>}
+            <div className="form-actions">
+              <button type="button" className="btn" onClick={resetMode}>취소</button>
+              <button type="submit" className="btn btn-primary" disabled={loading}>
+                {loading ? '참여중...' : '참여하기'}
+              </button>
+            </div>
+          </form>
+        )}
+
+        {mode === 'create' && (
           <form onSubmit={handleCreate} className="company-create-form">
             <div className="form-group">
               <label>기업 이름</label>
@@ -70,7 +126,7 @@ export default function CompanySelectPage() {
             </div>
             {error && <p className="auth-error">{error}</p>}
             <div className="form-actions">
-              <button type="button" className="btn" onClick={() => setShowCreate(false)}>취소</button>
+              <button type="button" className="btn" onClick={resetMode}>취소</button>
               <button type="submit" className="btn btn-primary" disabled={loading}>
                 {loading ? '생성중...' : '만들기'}
               </button>
