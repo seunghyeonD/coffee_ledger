@@ -11,6 +11,8 @@ import Members from '@/components/Members';
 import Shops from '@/components/Shops';
 import History from '@/components/History';
 import Summary from '@/components/Summary';
+import NotificationSettings from '@/components/NotificationSettings';
+import FCMInitializer from '@/components/FCMInitializer';
 import Toast from '@/components/Toast';
 
 export default function Home() {
@@ -99,7 +101,9 @@ export default function Home() {
         {page === 'shops' && <Shops showToast={showToast} />}
         {page === 'history' && <History showToast={showToast} />}
         {page === 'summary' && <Summary />}
+        {page === 'notifications' && <NotificationSettings showToast={showToast} />}
       </main>
+      <FCMInitializer showToast={showToast} />
       <Toast message={toast} />
     </div>
   );
