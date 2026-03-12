@@ -27,21 +27,22 @@ const BANNERS = [
 ];
 
 export default function LoginPage() {
-  const { signIn, signUp, resetPassword } = useAuth();
+  const { signIn, signUp, verifyOtp, resetPassword } = useAuth();
   const [mode, setMode] = useState('login'); // 'login' | 'signup' | 'forgot'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPw, setConfirmPw] = useState('');
-  const [inviteCode, setInviteCode] = useState('');
   const [name, setName] = useState('');
+  const [otpCode, setOtpCode] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [signUpDone, setSignUpDone] = useState(false);
+  const [signUpStep, setSignUpStep] = useState(1); // 1: form, 2: OTP verification
   const [resetDone, setResetDone] = useState(false);
   const [bannerIdx, setBannerIdx] = useState(0);
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [agreePrivacy, setAgreePrivacy] = useState(false);
-  const [showTerms, setShowTerms] = useState(null); // 'terms' | 'privacy' | null
+  const [showTerms, setShowTerms] = useState(null);
+  const [resendTimer, setResendTimer] = useState(0);
 
   const nextBanner = useCallback(() => {
     setBannerIdx(prev => (prev + 1) % BANNERS.length);
@@ -52,56 +53,118 @@ export default function LoginPage() {
     return () => clearInterval(timer);
   }, [nextBanner]);
 
+  // Resend cooldown timer
+  useEffect(() => {
+    if (resendTimer <= 0) return;
+    const t = setTimeout(() => setResendTimer(resendTimer - 1), 1000);
+    return () => clearTimeout(t);
+  }, [resendTimer]);
+
   const switchMode = (newMode) => {
     setMode(newMode);
     setError('');
+    setSignUpStep(1);
+    setOtpCode('');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
-    if (mode === 'signup' && password !== confirmPw) {
-      setError('비밀번호가 일치하지 않습니다.');
+    // Login
+    if (mode === 'login') {
+      if (password.length < 6) {
+        setError('비밀번호는 6자 이상이어야 합니다.');
+        return;
+      }
+      setLoading(true);
+      try {
+        await signIn(email, password);
+      } catch (err) {
+        const msg = err.message || '오류가 발생했습니다.';
+        if (msg.includes('Invalid login')) setError('이메일 또는 비밀번호가 올바르지 않습니다.');
+        else setError(msg);
+      } finally {
+        setLoading(false);
+      }
       return;
     }
 
-    if (mode !== 'forgot' && password.length < 6) {
-      setError('비밀번호는 6자 이상이어야 합니다.');
-      return;
-    }
-
-    if (mode === 'signup' && !name.trim()) {
-      setError('이름을 입력해주세요.');
-      return;
-    }
-
-    if (mode === 'signup' && inviteCode !== process.env.NEXT_PUBLIC_INVITE_CODE) {
-      setError('승인코드가 올바르지 않습니다.');
-      return;
-    }
-
-    if (mode === 'signup' && (!agreeTerms || !agreePrivacy)) {
-      setError('약관에 모두 동의해주세요.');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      if (mode === 'signup') {
-        await signUp(email, password, name.trim());
-        setSignUpDone(true);
-      } else if (mode === 'forgot') {
+    // Forgot password
+    if (mode === 'forgot') {
+      setLoading(true);
+      try {
         await resetPassword(email);
         setResetDone(true);
-      } else {
-        await signIn(email, password);
+      } catch (err) {
+        setError(err.message || '오류가 발생했습니다.');
+      } finally {
+        setLoading(false);
       }
+      return;
+    }
+
+    // Signup Step 1: Send OTP
+    if (mode === 'signup' && signUpStep === 1) {
+      if (!name.trim()) {
+        setError('이름을 입력해주세요.');
+        return;
+      }
+      if (password.length < 6) {
+        setError('비밀번호는 6자 이상이어야 합니다.');
+        return;
+      }
+      if (password !== confirmPw) {
+        setError('비밀번호가 일치하지 않습니다.');
+        return;
+      }
+      if (!agreeTerms || !agreePrivacy) {
+        setError('약관에 모두 동의해주세요.');
+        return;
+      }
+
+      setLoading(true);
+      try {
+        await signUp(email, password, name.trim());
+        setSignUpStep(2);
+        setResendTimer(60);
+      } catch (err) {
+        const msg = err.message || '오류가 발생했습니다.';
+        if (msg.includes('already registered')) setError('이미 가입된 이메일입니다.');
+        else setError(msg);
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
+    // Signup Step 2: Verify OTP
+    if (mode === 'signup' && signUpStep === 2) {
+      if (otpCode.length !== 8) {
+        setError('인증코드 8자리를 입력해주세요.');
+        return;
+      }
+      setLoading(true);
+      try {
+        await verifyOtp(email, otpCode);
+      } catch (err) {
+        setError('인증코드가 올바르지 않습니다. 다시 확인해주세요.');
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  const handleResendOtp = async () => {
+    if (resendTimer > 0) return;
+    setError('');
+    setLoading(true);
+    try {
+      await signUp(email, password, name.trim());
+      setResendTimer(60);
+      setError('');
     } catch (err) {
-      const msg = err.message || '오류가 발생했습니다.';
-      if (msg.includes('Invalid login')) setError('이메일 또는 비밀번호가 올바르지 않습니다.');
-      else if (msg.includes('already registered')) setError('이미 가입된 이메일입니다.');
-      else setError(msg);
+      setError('인증코드 재발송에 실패했습니다.');
     } finally {
       setLoading(false);
     }
@@ -128,27 +191,6 @@ export default function LoginPage() {
       </div>
     </div>
   );
-
-  // 회원가입 완료
-  if (signUpDone) {
-    return (
-      <div className="auth-page">
-        <div className="auth-card">
-          {bannerCarousel}
-          <div className="auth-card-body">
-          <div className="auth-logo">{'\u2615'} 커피 대장부</div>
-          <div className="auth-success">
-            <h3>가입 완료!</h3>
-            <p>이메일 인증 후 로그인해주세요.</p>
-            <button className="btn btn-primary auth-btn" onClick={() => { switchMode('login'); setSignUpDone(false); }}>
-              로그인하기
-            </button>
-          </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   // 재설정 메일 발송 완료
   if (resetDone) {
@@ -181,7 +223,9 @@ export default function LoginPage() {
         <div className="auth-card-body">
         <div className="auth-logo">{'\u2615'} 커피 대장부</div>
         <h2 className="auth-title">
-          {mode === 'signup' ? '회원가입' : mode === 'forgot' ? '비밀번호 재설정' : '로그인'}
+          {mode === 'signup'
+            ? (signUpStep === 2 ? '이메일 인증' : '회원가입')
+            : mode === 'forgot' ? '비밀번호 재설정' : '로그인'}
         </h2>
 
         {mode === 'forgot' && (
@@ -190,83 +234,112 @@ export default function LoginPage() {
           </p>
         )}
 
+        {mode === 'signup' && signUpStep === 2 && (
+          <p className="auth-subtitle">
+            <strong>{email}</strong> 주소로<br />인증코드를 보냈습니다.
+          </p>
+        )}
+
         <form onSubmit={handleSubmit} className="auth-form">
-          {mode === 'signup' && (
-            <div className="form-group">
-              <label>이름</label>
-              <input
-                type="text"
-                value={name}
-                onChange={e => setName(e.target.value)}
-                placeholder="예: 홍길동"
-                required
-              />
-            </div>
-          )}
-          <div className="form-group">
-            <label>이메일</label>
-            <input
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              placeholder="email@example.com"
-              required
-            />
-          </div>
-
-          {mode !== 'forgot' && (
-            <div className="form-group">
-              <label>비밀번호</label>
-              <input
-                type="password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                placeholder="6자 이상"
-                required
-              />
-            </div>
-          )}
-
-          {mode === 'signup' && (
+          {/* Signup Step 2: OTP input */}
+          {mode === 'signup' && signUpStep === 2 ? (
             <>
               <div className="form-group">
-                <label>비밀번호 확인</label>
-                <input
-                  type="password"
-                  value={confirmPw}
-                  onChange={e => setConfirmPw(e.target.value)}
-                  placeholder="비밀번호 재입력"
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>승인코드</label>
+                <label>인증코드</label>
                 <input
                   type="text"
-                  value={inviteCode}
-                  onChange={e => setInviteCode(e.target.value)}
-                  placeholder="승인코드를 입력하세요"
+                  value={otpCode}
+                  onChange={e => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 8))}
+                  placeholder="8자리 숫자 입력"
+                  maxLength={8}
+                  inputMode="numeric"
+                  autoFocus
+                  required
+                  className="otp-input"
+                />
+              </div>
+              <div className="auth-resend">
+                <button
+                  type="button"
+                  onClick={handleResendOtp}
+                  disabled={resendTimer > 0 || loading}
+                  className="auth-resend-btn"
+                >
+                  {resendTimer > 0 ? `재발송 (${resendTimer}초)` : '인증코드 재발송'}
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              {/* Signup Step 1 / Login / Forgot */}
+              {mode === 'signup' && (
+                <div className="form-group">
+                  <label>이름</label>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={e => setName(e.target.value)}
+                    placeholder="예: 홍길동"
+                    required
+                  />
+                </div>
+              )}
+              <div className="form-group">
+                <label>이메일</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  placeholder="email@example.com"
                   required
                 />
               </div>
-              <div className="auth-terms">
-                <label className="auth-terms-item">
-                  <input type="checkbox" checked={agreeTerms} onChange={e => setAgreeTerms(e.target.checked)} />
-                  <span><button type="button" className="auth-terms-link" onClick={() => setShowTerms('terms')}>서비스 이용약관</button>에 동의합니다. (필수)</span>
-                </label>
-                <label className="auth-terms-item">
-                  <input type="checkbox" checked={agreePrivacy} onChange={e => setAgreePrivacy(e.target.checked)} />
-                  <span><button type="button" className="auth-terms-link" onClick={() => setShowTerms('privacy')}>개인정보 처리방침</button>에 동의합니다. (필수)</span>
-                </label>
-                <label className="auth-terms-item auth-terms-all">
+
+              {mode !== 'forgot' && (
+                <div className="form-group">
+                  <label>비밀번호</label>
                   <input
-                    type="checkbox"
-                    checked={agreeTerms && agreePrivacy}
-                    onChange={e => { setAgreeTerms(e.target.checked); setAgreePrivacy(e.target.checked); }}
+                    type="password"
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    placeholder="6자 이상"
+                    required
                   />
-                  <span>전체 동의</span>
-                </label>
-              </div>
+                </div>
+              )}
+
+              {mode === 'signup' && (
+                <>
+                  <div className="form-group">
+                    <label>비밀번호 확인</label>
+                    <input
+                      type="password"
+                      value={confirmPw}
+                      onChange={e => setConfirmPw(e.target.value)}
+                      placeholder="비밀번호 재입력"
+                      required
+                    />
+                  </div>
+                  <div className="auth-terms">
+                    <label className="auth-terms-item">
+                      <input type="checkbox" checked={agreeTerms} onChange={e => setAgreeTerms(e.target.checked)} />
+                      <span><button type="button" className="auth-terms-link" onClick={() => setShowTerms('terms')}>서비스 이용약관</button>에 동의합니다. (필수)</span>
+                    </label>
+                    <label className="auth-terms-item">
+                      <input type="checkbox" checked={agreePrivacy} onChange={e => setAgreePrivacy(e.target.checked)} />
+                      <span><button type="button" className="auth-terms-link" onClick={() => setShowTerms('privacy')}>개인정보 처리방침</button>에 동의합니다. (필수)</span>
+                    </label>
+                    <label className="auth-terms-item auth-terms-all">
+                      <input
+                        type="checkbox"
+                        checked={agreeTerms && agreePrivacy}
+                        onChange={e => { setAgreeTerms(e.target.checked); setAgreePrivacy(e.target.checked); }}
+                      />
+                      <span>전체 동의</span>
+                    </label>
+                  </div>
+                </>
+              )}
             </>
           )}
 
@@ -276,7 +349,7 @@ export default function LoginPage() {
             {loading
               ? '처리중...'
               : mode === 'signup'
-                ? '가입하기'
+                ? (signUpStep === 2 ? '인증 완료' : '인증코드 발송')
                 : mode === 'forgot'
                   ? '재설정 링크 보내기'
                   : '로그인'}

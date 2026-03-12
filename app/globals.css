@@ -1437,6 +1437,33 @@ body {
   text-decoration: underline;
 }
 
+.otp-input {
+  text-align: center;
+  font-size: 24px !important;
+  font-weight: 700;
+  letter-spacing: 8px;
+  padding: 14px !important;
+}
+
+.auth-resend {
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+.auth-resend-btn {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+.auth-resend-btn:disabled {
+  color: var(--text-secondary);
+  cursor: default;
+}
+
 .auth-subtitle {
   text-align: center;
   font-size: 14px;
