@@ -475,13 +475,42 @@ body {
   font-size: 12px;
   color: var(--text-secondary);
 }
+.member-balance-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
 .member-balance-value {
   font-size: 22px;
   font-weight: 700;
-  margin-bottom: 12px;
 }
 .member-balance-value.negative {
   color: var(--danger);
+}
+
+.member-noti-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+.member-noti-btn:hover {
+  background: #fff3e0;
+  border-color: #e67e22;
+}
+.member-noti-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .member-deposits {
@@ -2169,6 +2198,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
   padding: 12px 16px;
   background: var(--bg);
   border: 1px solid var(--border);
@@ -2177,23 +2207,69 @@ body {
 
 .role-member-info {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
+  gap: 2px;
   min-width: 0;
   flex: 1;
 }
 
-.role-member-email {
+.role-member-name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.role-member-name {
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.role-edit-name-btn {
+  background: none;
+  border: none;
+  font-size: 11px;
+  color: var(--primary);
+  cursor: pointer;
+  padding: 0;
+}
+.role-edit-name-btn:hover {
+  text-decoration: underline;
+}
+
+.role-name-edit {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+}
+
+.role-name-input {
+  flex: 1;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+}
+
+.role-member-email {
+  font-size: 12px;
+  color: var(--text-secondary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .role-member-me {
-  font-size: 12px;
-  color: var(--text-secondary);
+  font-size: 11px;
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.role-member-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   flex-shrink: 0;
 }
 
@@ -2204,10 +2280,46 @@ body {
   font-size: 13px;
   background: white;
   cursor: pointer;
-  flex-shrink: 0;
 }
 
 .role-select:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.role-remove-btn {
+  background: none;
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  padding: 0;
+  line-height: 1;
+}
+.role-remove-btn:hover {
+  background: var(--danger);
+  color: white;
+}
+
+/* Manual Notification */
+.manual-noti-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.manual-noti-form textarea {
+  resize: vertical;
+  min-height: 60px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-family: inherit;
 }

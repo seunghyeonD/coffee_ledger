@@ -12,16 +12,28 @@ export async function POST(request) {
 
     const supabase = getSupabaseAdmin();
 
-    // 알림 설정이 켜진 유저 조회
-    const prefColumn = type === 'order_registered'
-      ? 'order_registered_enabled'
-      : 'low_balance_enabled';
+    // 수동 알림은 모든 유저에게 발송
+    const isManual = type === 'manual';
 
-    const { data: prefs } = await supabase
-      .from('notification_preferences')
-      .select('user_id, low_balance_threshold')
-      .eq('company_id', companyId)
-      .eq(prefColumn, true);
+    let prefs;
+    if (isManual) {
+      const { data } = await supabase
+        .from('notification_preferences')
+        .select('user_id, low_balance_threshold')
+        .eq('company_id', companyId);
+      prefs = data;
+    } else {
+      const prefColumn = type === 'order_registered'
+        ? 'order_registered_enabled'
+        : 'low_balance_enabled';
+
+      const { data } = await supabase
+        .from('notification_preferences')
+        .select('user_id, low_balance_threshold')
+        .eq('company_id', companyId)
+        .eq(prefColumn, true);
+      prefs = data;
+    }
 
     if (!prefs || prefs.length === 0) {
       return Response.json({ sent: 0 });
@@ -99,6 +111,11 @@ function buildNotification(type, data) {
       return {
         title: '잔액 부족 알림',
         body: `${data.memberName}님의 잔액이 ${Number(data.balance).toLocaleString()}원입니다. 충전이 필요합니다.`,
+      };
+    case 'manual':
+      return {
+        title: data?.title || '커피 대장부',
+        body: data?.body || '새로운 알림이 있습니다.',
       };
     default:
       return { title: '커피 대장부', body: '새로운 알림이 있습니다.' };

@@ -8,8 +8,9 @@ import { canDo } from '@/lib/roles';
 import Modal from '@/components/Modal';
 
 export default function Members({ showToast }) {
-  const { members, getMemberBalance, getDepositsByMember, addMember, updateMember, deleteMember, addDeposit, deleteDeposit } = useStore();
+  const { members, getMemberBalance, getDepositsByMember, addMember, updateMember, deleteMember, addDeposit, deleteDeposit, companyId } = useStore();
   const { userRole } = useAuth();
+  const [sendingNoti, setSendingNoti] = useState(null); // memberId being sent
   const [memberModal, setMemberModal] = useState(null); // null | { id?, name, balance }
   const [depositModal, setDepositModal] = useState(null); // null | { memberId, month, amount }
 
@@ -62,6 +63,33 @@ export default function Members({ showToast }) {
     }
   };
 
+  const handleSendChargeNotification = async (member, balance) => {
+    setSendingNoti(member.id);
+    try {
+      const res = await fetch('/api/notifications/send-to-member', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          companyId,
+          memberName: member.name,
+          balance,
+        }),
+      });
+      const result = await res.json();
+      if (result.matched === 0) {
+        showToast(`'${member.name}'과 일치하는 유저를 찾지 못했습니다. 설정 > 역할 관리에서 유저 이름을 확인해주세요.`);
+      } else if (result.sent === 0) {
+        showToast('매칭된 유저가 알림을 등록하지 않았습니다.');
+      } else {
+        showToast(`${member.name}님에게 충전 요청 알림을 보냈습니다.`);
+      }
+    } catch (e) {
+      showToast('알림 발송에 실패했습니다.');
+    } finally {
+      setSendingNoti(null);
+    }
+  };
+
   const now = new Date();
   const defaultMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 
@@ -93,7 +121,19 @@ export default function Members({ showToast }) {
               </div>
               <div>
                 <div className="member-balance-label">현재 잔액</div>
-                <div className={`member-balance-value ${bal < 0 ? 'negative' : ''}`}>{formatMoney(bal)}</div>
+                <div className="member-balance-row">
+                  <div className={`member-balance-value ${bal < 0 ? 'negative' : ''}`}>{formatMoney(bal)}</div>
+                  {bal <= 0 && canDo(userRole, 'sendMemberNotification') && (
+                    <button
+                      className="member-noti-btn"
+                      onClick={() => handleSendChargeNotification(m, bal)}
+                      disabled={sendingNoti === m.id}
+                      title="충전 요청 알림 보내기"
+                    >
+                      {sendingNoti === m.id ? '...' : '\uD83D\uDD14'}
+                    </button>
+                  )}
+                </div>
               </div>
               <div className="member-deposits">
                 <strong>충전 내역</strong>
