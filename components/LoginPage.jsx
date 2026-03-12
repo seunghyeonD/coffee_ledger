@@ -33,11 +33,15 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [confirmPw, setConfirmPw] = useState('');
   const [inviteCode, setInviteCode] = useState('');
+  const [name, setName] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [signUpDone, setSignUpDone] = useState(false);
   const [resetDone, setResetDone] = useState(false);
   const [bannerIdx, setBannerIdx] = useState(0);
+  const [agreeTerms, setAgreeTerms] = useState(false);
+  const [agreePrivacy, setAgreePrivacy] = useState(false);
+  const [showTerms, setShowTerms] = useState(null); // 'terms' | 'privacy' | null
 
   const nextBanner = useCallback(() => {
     setBannerIdx(prev => (prev + 1) % BANNERS.length);
@@ -67,15 +71,25 @@ export default function LoginPage() {
       return;
     }
 
+    if (mode === 'signup' && !name.trim()) {
+      setError('이름을 입력해주세요.');
+      return;
+    }
+
     if (mode === 'signup' && inviteCode !== process.env.NEXT_PUBLIC_INVITE_CODE) {
       setError('승인코드가 올바르지 않습니다.');
+      return;
+    }
+
+    if (mode === 'signup' && (!agreeTerms || !agreePrivacy)) {
+      setError('약관에 모두 동의해주세요.');
       return;
     }
 
     setLoading(true);
     try {
       if (mode === 'signup') {
-        await signUp(email, password);
+        await signUp(email, password, name.trim());
         setSignUpDone(true);
       } else if (mode === 'forgot') {
         await resetPassword(email);
@@ -177,6 +191,18 @@ export default function LoginPage() {
         )}
 
         <form onSubmit={handleSubmit} className="auth-form">
+          {mode === 'signup' && (
+            <div className="form-group">
+              <label>이름</label>
+              <input
+                type="text"
+                value={name}
+                onChange={e => setName(e.target.value)}
+                placeholder="예: 홍길동"
+                required
+              />
+            </div>
+          )}
           <div className="form-group">
             <label>이메일</label>
             <input
@@ -223,6 +249,24 @@ export default function LoginPage() {
                   required
                 />
               </div>
+              <div className="auth-terms">
+                <label className="auth-terms-item">
+                  <input type="checkbox" checked={agreeTerms} onChange={e => setAgreeTerms(e.target.checked)} />
+                  <span><button type="button" className="auth-terms-link" onClick={() => setShowTerms('terms')}>서비스 이용약관</button>에 동의합니다. (필수)</span>
+                </label>
+                <label className="auth-terms-item">
+                  <input type="checkbox" checked={agreePrivacy} onChange={e => setAgreePrivacy(e.target.checked)} />
+                  <span><button type="button" className="auth-terms-link" onClick={() => setShowTerms('privacy')}>개인정보 처리방침</button>에 동의합니다. (필수)</span>
+                </label>
+                <label className="auth-terms-item auth-terms-all">
+                  <input
+                    type="checkbox"
+                    checked={agreeTerms && agreePrivacy}
+                    onChange={e => { setAgreeTerms(e.target.checked); setAgreePrivacy(e.target.checked); }}
+                  />
+                  <span>전체 동의</span>
+                </label>
+              </div>
             </>
           )}
 
@@ -256,6 +300,63 @@ export default function LoginPage() {
         </div>
         </div>
       </div>
+
+      {showTerms && (
+        <div className="auth-terms-overlay" onClick={() => setShowTerms(null)}>
+          <div className="auth-terms-modal" onClick={e => e.stopPropagation()}>
+            <div className="auth-terms-modal-header">
+              <h3>{showTerms === 'terms' ? '서비스 이용약관' : '개인정보 처리방침'}</h3>
+              <button onClick={() => setShowTerms(null)}>&times;</button>
+            </div>
+            <div className="auth-terms-modal-body">
+              {showTerms === 'terms' ? (
+                <>
+                  <h4>제1조 (목적)</h4>
+                  <p>이 약관은 커피 대장부(이하 "서비스")가 제공하는 서비스의 이용에 관한 조건과 절차, 권리, 의무 및 기타 필요한 사항을 규정합니다.</p>
+
+                  <h4>제2조 (정의)</h4>
+                  <p>"서비스"란 사내 커피 비용을 관리하기 위한 웹 애플리케이션을 의미합니다. "회원"이란 본 약관에 동의하고 서비스에 가입한 자를 말합니다.</p>
+
+                  <h4>제3조 (약관의 효력)</h4>
+                  <p>본 약관은 서비스를 이용하고자 하는 모든 회원에게 적용됩니다. 약관의 내용은 서비스 내 공지사항을 통해 변경될 수 있으며, 변경된 약관은 공지 후 효력이 발생합니다.</p>
+
+                  <h4>제4조 (회원가입 및 탈퇴)</h4>
+                  <p>회원가입은 이메일 인증을 통해 완료됩니다. 회원은 언제든 탈퇴를 요청할 수 있으며, 탈퇴 시 관련 데이터는 삭제됩니다.</p>
+
+                  <h4>제5조 (서비스 이용)</h4>
+                  <p>서비스는 사내 커피 비용 관리 목적으로만 사용해야 합니다. 서비스를 부정한 목적으로 이용하는 경우 이용이 제한될 수 있습니다.</p>
+
+                  <h4>제6조 (면책)</h4>
+                  <p>서비스는 무료로 제공되며, 서비스 이용으로 인해 발생하는 손해에 대해 법적 책임을 지지 않습니다. 서비스의 중단, 변경, 종료에 대해 사전 고지할 수 있습니다.</p>
+                </>
+              ) : (
+                <>
+                  <h4>1. 수집하는 개인정보</h4>
+                  <p>서비스는 회원가입 및 서비스 이용을 위해 다음 정보를 수집합니다: 이메일 주소, 이름, 비밀번호(암호화 저장).</p>
+
+                  <h4>2. 개인정보의 이용 목적</h4>
+                  <p>수집된 개인정보는 다음 목적으로 이용됩니다: 회원 식별 및 인증, 서비스 제공, 공지사항 전달, 푸시 알림 발송.</p>
+
+                  <h4>3. 개인정보의 보유 및 파기</h4>
+                  <p>회원 탈퇴 시 수집된 개인정보는 즉시 파기됩니다. 다만, 관련 법령에 의해 보존이 필요한 경우 해당 기간 동안 보관합니다.</p>
+
+                  <h4>4. 개인정보의 제3자 제공</h4>
+                  <p>서비스는 회원의 동의 없이 개인정보를 제3자에게 제공하지 않습니다. 단, 법령에 의한 요청이 있는 경우 예외로 합니다.</p>
+
+                  <h4>5. 개인정보의 안전성 확보</h4>
+                  <p>비밀번호는 암호화하여 저장되며, 개인정보 접근 권한을 최소화하고 있습니다. 데이터는 SSL/TLS를 통해 암호화 전송됩니다.</p>
+
+                  <h4>6. 쿠키 및 알림</h4>
+                  <p>서비스는 로그인 세션 유지를 위해 쿠키를 사용합니다. 푸시 알림은 회원의 별도 동의 하에 발송됩니다.</p>
+                </>
+              )}
+            </div>
+            <div className="auth-terms-modal-footer">
+              <button className="btn btn-primary" onClick={() => setShowTerms(null)}>확인</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
