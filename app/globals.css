@@ -1228,6 +1228,31 @@ body {
   text-align: center;
 }
 
+.auth-forgot-btn {
+  display: block;
+  width: 100%;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+  text-align: center;
+  margin-top: 12px;
+  padding: 4px;
+}
+.auth-forgot-btn:hover {
+  color: var(--primary);
+  text-decoration: underline;
+}
+
+.auth-subtitle {
+  text-align: center;
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
 .auth-switch {
   text-align: center;
   margin-top: 20px;

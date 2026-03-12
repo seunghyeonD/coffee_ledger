@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth';
 import { useStore } from '@/lib/store';
 import LoginPage from '@/components/LoginPage';
+import ResetPasswordPage from '@/components/ResetPasswordPage';
 import CompanySelectPage from '@/components/CompanySelectPage';
 import Sidebar from '@/components/Sidebar';
 import Dashboard from '@/components/Dashboard';
@@ -16,7 +17,7 @@ import FCMInitializer from '@/components/FCMInitializer';
 import Toast from '@/components/Toast';
 
 export default function Home() {
-  const { user, company, loading: authLoading } = useAuth();
+  const { user, company, passwordRecovery, loading: authLoading } = useAuth();
   const { loaded, init, reset } = useStore();
   const [page, setPage] = useState('dashboard');
   const [toast, setToast] = useState('');
@@ -53,6 +54,9 @@ export default function Home() {
       </div>
     );
   }
+
+  // 비밀번호 재설정 모드
+  if (passwordRecovery) return <ResetPasswordPage />;
 
   // 미로그인
   if (!user) return <LoginPage />;
