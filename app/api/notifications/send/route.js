@@ -18,13 +18,15 @@ export async function POST(request) {
 
     if (isManual) {
       // 수동 알림: FCM 토큰이 있는 모든 유저에게 발송 (알림 설정 무관)
-      const { data: tokenRows } = await supabase
+      const { data: tokenRows, error: tokenError } = await supabase
         .from('fcm_tokens')
         .select('token')
         .eq('company_id', companyId);
 
+      console.log('Manual noti - companyId:', companyId, 'tokens found:', tokenRows?.length, 'error:', tokenError);
+
       if (!tokenRows || tokenRows.length === 0) {
-        return Response.json({ sent: 0 });
+        return Response.json({ sent: 0, debug: { companyId, tokensFound: 0, error: tokenError?.message } });
       }
       tokens = tokenRows.map(r => r.token);
     } else {
