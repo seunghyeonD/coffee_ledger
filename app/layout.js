@@ -40,6 +40,12 @@ export default function RootLayout({ children }) {
           src="https://t.contentsquare.net/uxa/3a37d5ce9ed64.js"
           strategy="afterInteractive"
         />
+        {/* Google AdSense */}
+        <Script
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1265314191139623"
+          crossOrigin="anonymous"
+          strategy="afterInteractive"
+        />
       </head>
       <body className={notoSansKR.className}>
         <AuthProvider>
