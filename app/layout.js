@@ -13,6 +13,9 @@ const notoSansKR = Noto_Sans_KR({
 export const metadata = {
   title: '커피 대장부',
   description: '사내 커피 대장부 관리 시스템',
+  verification: {
+    google: 'qwScbmyNfsd16_eeSLZk8kePN1nnVFuuZtjXJQDTX80',
+  },
 };
 
 export default function RootLayout({ children }) {
