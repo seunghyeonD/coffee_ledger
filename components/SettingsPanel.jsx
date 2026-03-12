@@ -96,7 +96,7 @@ export default function SettingsPage({ showToast }) {
         }),
       });
       const result = await res.json();
-      console.log('Manual noti result:', result);
+      console.log('Manual noti result:', JSON.stringify(result));
       showToast(`알림이 ${result.sent || 0}명에게 발송되었습니다.`);
       setNotiTitle('');
       setNotiBody('');

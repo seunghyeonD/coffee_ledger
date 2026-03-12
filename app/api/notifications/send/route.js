@@ -102,14 +102,22 @@ export async function POST(request) {
       },
     });
 
-    // 만료된 토큰 정리
+    // 에러 상세 로깅 및 만료된 토큰 정리
     const staleTokens = [];
+    const errors = [];
     response.responses.forEach((res, i) => {
-      if (res.error?.code === 'messaging/registration-token-not-registered' ||
-          res.error?.code === 'messaging/invalid-registration-token') {
-        staleTokens.push(tokens[i]);
+      if (res.error) {
+        errors.push({ code: res.error.code, message: res.error.message });
+        if (res.error.code === 'messaging/registration-token-not-registered' ||
+            res.error.code === 'messaging/invalid-registration-token') {
+          staleTokens.push(tokens[i]);
+        }
       }
     });
+
+    if (errors.length > 0) {
+      console.log('FCM send errors:', JSON.stringify(errors));
+    }
 
     if (staleTokens.length > 0) {
       await supabase.from('fcm_tokens').delete().in('token', staleTokens);
@@ -118,6 +126,7 @@ export async function POST(request) {
     return Response.json({
       sent: response.successCount,
       failed: response.failureCount,
+      errors: errors.length > 0 ? errors : undefined,
     });
   } catch (error) {
     console.error('Notification send error:', error);
