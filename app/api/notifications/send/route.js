@@ -75,6 +75,11 @@ export async function POST(request) {
       tokens,
       notification,
       data: { type, url: '/' },
+      webpush: {
+        notification: {
+          icon: 'https://coffeeledger.co.kr/notification-icon.png',
+        },
+      },
     });
 
     // 만료된 토큰 정리

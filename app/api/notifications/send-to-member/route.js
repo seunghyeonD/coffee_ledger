@@ -54,6 +54,12 @@ export async function POST(request) {
       notification: {
         title: '충전 요청',
         body: `${memberName}님, 현재 잔액이 ${balanceText}원입니다. 커피비 충전을 부탁드립니다.`,
+        image: 'https://coffeeledger.co.kr/notification-icon.png',
+      },
+      webpush: {
+        notification: {
+          icon: 'https://coffeeledger.co.kr/notification-icon.png',
+        },
       },
       data: { type: 'charge_request', url: '/' },
     });

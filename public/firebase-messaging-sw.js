@@ -16,6 +16,6 @@ messaging.onBackgroundMessage((payload) => {
   const { title, body } = payload.notification || {};
   self.registration.showNotification(title || '커피 대장부', {
     body: body || '',
-    icon: '/favicon.ico',
+    icon: '/notification-icon.png',
   });
 });
