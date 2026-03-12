@@ -9,10 +9,11 @@ import Modal from '@/components/Modal';
 import NearbySearch from '@/components/NearbySearch';
 
 export default function Shops({ showToast }) {
-  const { shops, addShop, updateShop, deleteShop, addMenu, updateMenu, deleteMenu } = useStore();
+  const { shops, addShop, updateShop, deleteShop, addMenu, addMenusBulk, updateMenu, deleteMenu } = useStore();
   const { userRole } = useAuth();
   const [shopModal, setShopModal] = useState(null);
   const [menuModal, setMenuModal] = useState(null);
+  const [bulkModal, setBulkModal] = useState(null); // { shopId, text, parsed: [] }
   const [showNearby, setShowNearby] = useState(false);
   const [expandedShop, setExpandedShop] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
@@ -78,6 +79,43 @@ export default function Shops({ showToast }) {
     }
   };
 
+  const parseBulkText = (text) => {
+    return text.split('\n')
+      .map(line => line.trim())
+      .filter(line => line)
+      .map(line => {
+        // "메뉴명 가격" or "메뉴명\t가격" or "메뉴명,가격"
+        const match = line.match(/^(.+?)\s*[,\t]\s*([0-9,]+)\s*원?\s*$/);
+        if (match) return { name: match[1].trim(), price: Number(match[2].replace(/,/g, '')) };
+        // "가격 메뉴명" or "가격\t메뉴명"
+        const match2 = line.match(/^([0-9,]+)\s*원?\s*[,\t]\s*(.+)$/);
+        if (match2) return { name: match2[2].trim(), price: Number(match2[1].replace(/,/g, '')) };
+        // "메뉴명 4500" (space + number at end)
+        const match3 = line.match(/^(.+?)\s+([0-9,]+)\s*원?\s*$/);
+        if (match3) return { name: match3[1].trim(), price: Number(match3[2].replace(/,/g, '')) };
+        return { name: line, price: 0, invalid: true };
+      });
+  };
+
+  const handleBulkTextChange = (text) => {
+    setBulkModal(prev => ({ ...prev, text, parsed: parseBulkText(text) }));
+  };
+
+  const handleBulkImport = async () => {
+    const valid = bulkModal.parsed.filter(m => !m.invalid && m.name && m.price > 0);
+    if (valid.length === 0) {
+      showToast('등록할 수 있는 메뉴가 없습니다.');
+      return;
+    }
+    try {
+      await addMenusBulk(bulkModal.shopId, valid);
+      showToast(`${valid.length}개 메뉴가 등록되었습니다!`);
+      setBulkModal(null);
+    } catch (e) {
+      showToast('오류: ' + (e.message || '일괄 등록 실패'));
+    }
+  };
+
   return (
     <>
       <div className="page-header">
@@ -134,9 +172,14 @@ export default function Shops({ showToast }) {
                 ))
               )}
               {canDo(userRole, 'addMenu') && (
-                <button className="btn-add-menu" onClick={() => setMenuModal({ shopId: s.id, name: '', price: '' })}>
-                  + 메뉴 추가
-                </button>
+                <div className="shop-menu-add-actions">
+                  <button className="btn-add-menu" onClick={() => setMenuModal({ shopId: s.id, name: '', price: '' })}>
+                    + 메뉴 추가
+                  </button>
+                  <button className="btn-add-menu btn-bulk-menu" onClick={() => setBulkModal({ shopId: s.id, text: '', parsed: [] })}>
+                    일괄 등록
+                  </button>
+                </div>
               )}
             </div>
           </div>
@@ -196,6 +239,55 @@ export default function Shops({ showToast }) {
               <button type="submit" className="btn btn-primary">저장</button>
             </div>
           </form>
+        )}
+      </Modal>
+
+      {/* Bulk Import Modal */}
+      <Modal open={!!bulkModal} onClose={() => setBulkModal(null)} title="메뉴 일괄 등록">
+        {bulkModal && (
+          <div className="bulk-import">
+            <p className="bulk-import-desc">
+              배달앱에서 메뉴를 복사해서 붙여넣으세요.<br />
+              한 줄에 하나의 메뉴를 입력합니다.
+            </p>
+            <div className="bulk-import-format">
+              <strong>지원 형식</strong>
+              <code>아메리카노 4500</code>
+              <code>카페라떼, 5000</code>
+              <code>바닐라라떼{'\t'}5500</code>
+            </div>
+            <textarea
+              className="bulk-import-textarea"
+              value={bulkModal.text}
+              onChange={e => handleBulkTextChange(e.target.value)}
+              placeholder={'아메리카노 4500\n카페라떼 5000\n바닐라라떼 5500'}
+              rows={8}
+            />
+            {bulkModal.parsed.length > 0 && (
+              <div className="bulk-import-preview">
+                <strong>미리보기 ({bulkModal.parsed.filter(m => !m.invalid).length}개 인식)</strong>
+                <div className="bulk-import-list">
+                  {bulkModal.parsed.map((m, i) => (
+                    <div key={i} className={`bulk-import-item ${m.invalid ? 'invalid' : ''}`}>
+                      <span>{m.name}</span>
+                      <span>{m.invalid ? '인식 불가' : formatMoney(m.price)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            <div className="form-actions">
+              <button type="button" className="btn" onClick={() => setBulkModal(null)}>취소</button>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={handleBulkImport}
+                disabled={!bulkModal.parsed.some(m => !m.invalid && m.price > 0)}
+              >
+                {bulkModal.parsed.filter(m => !m.invalid && m.price > 0).length}개 메뉴 등록
+              </button>
+            </div>
+          </div>
         )}
       </Modal>
     </>
