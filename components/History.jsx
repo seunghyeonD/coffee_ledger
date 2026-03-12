@@ -2,10 +2,13 @@
 
 import { useState } from 'react';
 import { useStore } from '@/lib/store';
+import { useAuth } from '@/lib/auth';
 import { formatMoney } from '@/lib/utils';
+import { canDo } from '@/lib/roles';
 
 export default function History({ showToast }) {
   const { members, shops, getOrdersByMonth, getActiveMonths, deleteOrder } = useStore();
+  const { userRole } = useAuth();
   const months = getActiveMonths();
   const [selectedMonth, setSelectedMonth] = useState(months[months.length - 1] || '');
   const [selectedMember, setSelectedMember] = useState('');
@@ -55,7 +58,7 @@ export default function History({ showToast }) {
                 <th>메뉴</th>
                 <th>금액</th>
                 <th>비고</th>
-                <th></th>
+                {canDo(userRole, 'deleteOrder') && <th></th>}
               </tr>
             </thead>
             <tbody>
@@ -70,9 +73,11 @@ export default function History({ showToast }) {
                     <td>{o.menu_name}</td>
                     <td style={{ textAlign: 'right' }}>{formatMoney(o.price)}</td>
                     <td>{o.note || ''}</td>
-                    <td>
-                      <button className="day-order-delete" onClick={() => handleDelete(o.id)}>&times;</button>
-                    </td>
+                    {canDo(userRole, 'deleteOrder') && (
+                      <td>
+                        <button className="day-order-delete" onClick={() => handleDelete(o.id)}>&times;</button>
+                      </td>
+                    )}
                   </tr>
                 );
               })}

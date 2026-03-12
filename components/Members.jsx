@@ -2,11 +2,14 @@
 
 import { useState } from 'react';
 import { useStore } from '@/lib/store';
+import { useAuth } from '@/lib/auth';
 import { formatMoney } from '@/lib/utils';
+import { canDo } from '@/lib/roles';
 import Modal from '@/components/Modal';
 
 export default function Members({ showToast }) {
   const { members, getMemberBalance, getDepositsByMember, addMember, updateMember, deleteMember, addDeposit, deleteDeposit } = useStore();
+  const { userRole } = useAuth();
   const [memberModal, setMemberModal] = useState(null); // null | { id?, name, balance }
   const [depositModal, setDepositModal] = useState(null); // null | { memberId, month, amount }
 
@@ -66,9 +69,11 @@ export default function Members({ showToast }) {
     <>
       <div className="page-header">
         <h1>멤버 관리</h1>
-        <button className="btn btn-primary" onClick={() => setMemberModal({ name: '', balance: 0 })}>
-          + 멤버 추가
-        </button>
+        {canDo(userRole, 'addMember') && (
+          <button className="btn btn-primary" onClick={() => setMemberModal({ name: '', balance: 0 })}>
+            + 멤버 추가
+          </button>
+        )}
       </div>
 
       <div className="members-grid">
@@ -79,10 +84,12 @@ export default function Members({ showToast }) {
             <div key={m.id} className="member-card">
               <div className="member-card-header">
                 <div className="member-name">{m.name}</div>
-                <div className="member-actions">
-                  <button className="btn btn-sm" onClick={() => setMemberModal({ id: m.id, name: m.name, balance: m.initial_balance || 0 })}>수정</button>
-                  <button className="btn btn-sm text-danger" onClick={() => handleDeleteMember(m)}>삭제</button>
-                </div>
+                {canDo(userRole, 'updateMember') && (
+                  <div className="member-actions">
+                    <button className="btn btn-sm" onClick={() => setMemberModal({ id: m.id, name: m.name, balance: m.initial_balance || 0 })}>수정</button>
+                    <button className="btn btn-sm text-danger" onClick={() => handleDeleteMember(m)}>삭제</button>
+                  </div>
+                )}
               </div>
               <div>
                 <div className="member-balance-label">현재 잔액</div>
@@ -98,17 +105,19 @@ export default function Members({ showToast }) {
                       <div key={d.id} className="deposit-item">
                         <span>{d.month}</span>
                         <span className="deposit-amount">{formatMoney(d.amount)}</span>
-                        <button className="deposit-delete" onClick={() => handleDeleteDeposit(d.id)}>&times;</button>
+                        {canDo(userRole, 'deleteDeposit') && <button className="deposit-delete" onClick={() => handleDeleteDeposit(d.id)}>&times;</button>}
                       </div>
                     ))
                   )}
                 </div>
-                <button
-                  className="btn btn-sm btn-primary member-deposit-btn"
-                  onClick={() => setDepositModal({ memberId: m.id, month: defaultMonth, amount: '' })}
-                >
-                  + 충전
-                </button>
+                {canDo(userRole, 'addDeposit') && (
+                  <button
+                    className="btn btn-sm btn-primary member-deposit-btn"
+                    onClick={() => setDepositModal({ memberId: m.id, month: defaultMonth, amount: '' })}
+                  >
+                    + 충전
+                  </button>
+                )}
               </div>
             </div>
           );

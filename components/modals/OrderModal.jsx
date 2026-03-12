@@ -2,11 +2,14 @@
 
 import { useState } from 'react';
 import { useStore } from '@/lib/store';
+import { useAuth } from '@/lib/auth';
 import { formatMoney, DAY_NAMES } from '@/lib/utils';
+import { canDo } from '@/lib/roles';
 import Modal from '@/components/Modal';
 
 export default function OrderModal({ date, onClose, showToast }) {
   const { shops, members, getMemberBalance, getOrdersByDate, addOrder, deleteOrder } = useStore();
+  const { userRole } = useAuth();
   const [step, setStep] = useState(1);
   const [shopId, setShopId] = useState(null);
   const [menuName, setMenuName] = useState('');
@@ -64,7 +67,7 @@ export default function OrderModal({ date, onClose, showToast }) {
       <div className="order-date-display">{dateLabel}</div>
 
       {/* Step 1: Shop */}
-      {step === 1 && (
+      {step === 1 && canDo(userRole, 'addOrder') && (
         <div className="order-step">
           <h3>1. 업체 선택</h3>
           {shops.length === 0 ? (
@@ -154,7 +157,7 @@ export default function OrderModal({ date, onClose, showToast }) {
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <span className="order-price">{formatMoney(o.price)}</span>
-                  <button className="day-order-delete" onClick={() => handleDeleteOrder(o.id)}>&times;</button>
+                  {canDo(userRole, 'deleteOrder') && <button className="day-order-delete" onClick={() => handleDeleteOrder(o.id)}>&times;</button>}
                 </div>
               </div>
             );

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/lib/auth';
+import { ROLE_LABELS } from '@/lib/roles';
 
 export default function CompanySelectPage() {
   const { userCompanies, selectCompany, createCompany, joinCompany, signOut } = useAuth();
@@ -63,7 +64,7 @@ export default function CompanySelectPage() {
               >
                 <div className="company-item-name">{c.name}</div>
                 <div className="company-item-role">
-                  {c.role === 'owner' ? '소유자' : c.role === 'admin' ? '관리자' : '멤버'}
+                  {ROLE_LABELS[c.role] || c.role}
                 </div>
               </button>
             ))}

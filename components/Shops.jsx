@@ -2,12 +2,15 @@
 
 import { useState, useEffect } from 'react';
 import { useStore } from '@/lib/store';
+import { useAuth } from '@/lib/auth';
 import { formatMoney } from '@/lib/utils';
+import { canDo } from '@/lib/roles';
 import Modal from '@/components/Modal';
 import NearbySearch from '@/components/NearbySearch';
 
 export default function Shops({ showToast }) {
   const { shops, addShop, updateShop, deleteShop, addMenu, updateMenu, deleteMenu } = useStore();
+  const { userRole } = useAuth();
   const [shopModal, setShopModal] = useState(null);
   const [menuModal, setMenuModal] = useState(null);
   const [showNearby, setShowNearby] = useState(false);
@@ -79,14 +82,16 @@ export default function Shops({ showToast }) {
     <>
       <div className="page-header">
         <h1>메뉴 관리</h1>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button className="btn" onClick={() => setShowNearby(true)}>
-            {'\u{1F4CD}'} 주변 카페 찾기
-          </button>
-          <button className="btn btn-primary" onClick={() => setShopModal({ name: '', color: '#4a90d9' })}>
-            + 업체 추가
-          </button>
-        </div>
+        {canDo(userRole, 'addShop') && (
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button className="btn" onClick={() => setShowNearby(true)}>
+              {'\u{1F4CD}'} 주변 카페 찾기
+            </button>
+            <button className="btn btn-primary" onClick={() => setShopModal({ name: '', color: '#4a90d9' })}>
+              + 업체 추가
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="shops-grid">
@@ -102,10 +107,12 @@ export default function Shops({ showToast }) {
                 {isMobile && <span className="shop-toggle-icon">{expandedShop === s.id ? '\u25B2' : '\u25BC'}</span>}
                 {isMobile && <span className="shop-menu-count">{s.menus.length}개 메뉴</span>}
               </h3>
-              <div className="shop-actions" onClick={e => e.stopPropagation()}>
-                <button className="btn btn-sm" onClick={() => setShopModal({ id: s.id, name: s.name, color: s.color })}>수정</button>
-                <button className="btn btn-sm" onClick={() => handleDeleteShop(s.id)}>삭제</button>
-              </div>
+              {canDo(userRole, 'updateShop') && (
+                <div className="shop-actions" onClick={e => e.stopPropagation()}>
+                  <button className="btn btn-sm" onClick={() => setShopModal({ id: s.id, name: s.name, color: s.color })}>수정</button>
+                  <button className="btn btn-sm" onClick={() => handleDeleteShop(s.id)}>삭제</button>
+                </div>
+              )}
             </div>
             <div className="shop-menu-list">
               {s.menus.length === 0 ? (
@@ -116,17 +123,21 @@ export default function Shops({ showToast }) {
                     <span className="menu-item-name">{m.name}</span>
                     <div style={{ display: 'flex', alignItems: 'center' }}>
                       <span className="menu-item-price">{formatMoney(m.price)}</span>
+                      {canDo(userRole, 'updateMenu') && (
                       <div className="menu-item-actions">
                         <button className="btn btn-sm" onClick={() => setMenuModal({ shopId: s.id, menuId: m.id, name: m.name, price: m.price })}>수정</button>
                         <button className="btn btn-sm text-danger" onClick={() => handleDeleteMenu(s.id, m.id)}>삭제</button>
                       </div>
+                    )}
                     </div>
                   </div>
                 ))
               )}
-              <button className="btn-add-menu" onClick={() => setMenuModal({ shopId: s.id, name: '', price: '' })}>
-                + 메뉴 추가
-              </button>
+              {canDo(userRole, 'addMenu') && (
+                <button className="btn-add-menu" onClick={() => setMenuModal({ shopId: s.id, name: '', price: '' })}>
+                  + 메뉴 추가
+                </button>
+              )}
             </div>
           </div>
         ))}
