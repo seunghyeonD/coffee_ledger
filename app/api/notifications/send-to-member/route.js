@@ -3,7 +3,7 @@ import { getSupabaseAdmin } from '@/lib/supabase-admin';
 
 export async function POST(request) {
   try {
-    const { companyId, memberName, balance } = await request.json();
+    const { companyId, memberName, balance, autoTriggered } = await request.json();
 
     if (!companyId || !memberName) {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
@@ -35,12 +35,36 @@ export async function POST(request) {
       return Response.json({ sent: 0, matched: 0, reason: 'no_match' });
     }
 
+    // 자동 발송인 경우: 본인이 잔액 부족 알림을 켜놨는지 + 임계값 확인
+    let filteredUserIds = matchedUserIds;
+    if (autoTriggered) {
+      const { data: prefs } = await supabase
+        .from('notification_preferences')
+        .select('user_id, low_balance_enabled, low_balance_threshold')
+        .eq('company_id', companyId)
+        .in('user_id', matchedUserIds)
+        .eq('low_balance_enabled', true);
+
+      if (!prefs || prefs.length === 0) {
+        return Response.json({ sent: 0, matched: matchedUserIds.length, reason: 'noti_disabled' });
+      }
+
+      // 임계값 체크: 잔액이 설정 금액 이하인 유저만
+      filteredUserIds = prefs
+        .filter(p => balance !== undefined ? Number(balance) < (p.low_balance_threshold || 5000) : true)
+        .map(p => p.user_id);
+
+      if (filteredUserIds.length === 0) {
+        return Response.json({ sent: 0, matched: matchedUserIds.length, reason: 'above_threshold' });
+      }
+    }
+
     // 매칭된 유저들의 FCM 토큰 조회
     const { data: tokenRows } = await supabase
       .from('fcm_tokens')
       .select('token')
       .eq('company_id', companyId)
-      .in('user_id', matchedUserIds);
+      .in('user_id', filteredUserIds);
 
     if (!tokenRows || tokenRows.length === 0) {
       return Response.json({ sent: 0, matched: matchedUserIds.length, reason: 'no_tokens' });

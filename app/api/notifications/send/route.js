@@ -44,29 +44,43 @@ export async function POST(request) {
         return Response.json({ sent: 0 });
       }
 
-      const userIds = prefs.map(p => p.user_id);
+      let targetUserIds = prefs.map(p => p.user_id);
+
+      // 잔액 부족 알림인 경우: 관리자(master/admin)만 + 임계값 체크
+      if (type === 'low_balance') {
+        const { data: ucData } = await supabase
+          .from('user_companies')
+          .select('user_id, role')
+          .eq('company_id', companyId)
+          .in('user_id', targetUserIds)
+          .in('role', ['master', 'admin']);
+
+        const adminUserIds = (ucData || []).map(uc => uc.user_id);
+
+        if (data?.balance !== undefined) {
+          targetUserIds = prefs
+            .filter(p => adminUserIds.includes(p.user_id) && data.balance < (p.low_balance_threshold || 5000))
+            .map(p => p.user_id);
+        } else {
+          targetUserIds = adminUserIds;
+        }
+      }
+
+      if (targetUserIds.length === 0) {
+        return Response.json({ sent: 0 });
+      }
 
       const { data: tokenRows } = await supabase
         .from('fcm_tokens')
         .select('token, user_id')
         .eq('company_id', companyId)
-        .in('user_id', userIds);
+        .in('user_id', targetUserIds);
 
       if (!tokenRows || tokenRows.length === 0) {
         return Response.json({ sent: 0 });
       }
 
       tokens = tokenRows.map(r => r.token);
-
-      // 잔액 부족 알림인 경우, 임계값 체크
-      if (type === 'low_balance' && data?.balance !== undefined) {
-        const relevantUserIds = prefs
-          .filter(p => data.balance < (p.low_balance_threshold || 5000))
-          .map(p => p.user_id);
-        tokens = tokenRows
-          .filter(r => relevantUserIds.includes(r.user_id))
-          .map(r => r.token);
-      }
     }
 
     if (tokens.length === 0) {

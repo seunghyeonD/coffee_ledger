@@ -11,8 +11,9 @@ import {
 } from '@/lib/fcm';
 
 export default function NotificationSettings({ showToast, embedded = false }) {
-  const { user } = useAuth();
+  const { user, userRole } = useAuth();
   const { companyId } = useStore();
+  const isAdmin = userRole === 'master' || userRole === 'admin';
   const [enabled, setEnabled] = useState(false);
   const [orderEnabled, setOrderEnabled] = useState(true);
   const [lowBalanceEnabled, setLowBalanceEnabled] = useState(true);
@@ -150,7 +151,11 @@ export default function NotificationSettings({ showToast, embedded = false }) {
             <div className="notification-row">
               <div>
                 <strong>잔액 부족 알림</strong>
-                <p className="notification-desc">멤버 잔액이 설정 금액 이하일 때 알림을 받습니다.</p>
+                <p className="notification-desc">
+                  {isAdmin
+                    ? '멤버 잔액이 설정 금액 이하일 때 관리자 알림을 받습니다.'
+                    : '내 잔액이 설정 금액 이하일 때 충전 요청 알림을 받습니다.'}
+                </p>
               </div>
               <button
                 className={`toggle-btn ${lowBalanceEnabled ? 'active' : ''}`}
