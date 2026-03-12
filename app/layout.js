@@ -12,7 +12,19 @@ const notoSansKR = Noto_Sans_KR({
 
 export const metadata = {
   title: '커피 대장부',
-  description: '사내 커피 대장부 관리 시스템',
+  description: '사내 커피 비용 관리 서비스 - 멤버별 잔액 추적, 월별 리포트, 엑셀 내보내기',
+  openGraph: {
+    title: '커피 대장부',
+    description: '사내 커피 비용 관리 서비스 - 멤버별 잔액 추적, 월별 리포트, 엑셀 내보내기',
+    images: [{ url: '/og-image.png', width: 1200, height: 630 }],
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: '커피 대장부',
+    description: '사내 커피 비용 관리 서비스',
+    images: ['/og-image.png'],
+  },
   verification: {
     google: 'qwScbmyNfsd16_eeSLZk8kePN1nnVFuuZtjXJQDTX80',
   },
