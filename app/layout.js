@@ -1,5 +1,6 @@
 import Script from 'next/script';
 import { Noto_Sans_KR } from 'next/font/google';
+import { Analytics } from '@vercel/analytics/react';
 import './globals.css';
 import { AuthProvider } from '@/lib/auth';
 import { StoreProvider } from '@/lib/store';
@@ -43,6 +44,7 @@ export default function RootLayout({ children }) {
             {children}
           </StoreProvider>
         </AuthProvider>
+        <Analytics />
       </body>
     </html>
   );
