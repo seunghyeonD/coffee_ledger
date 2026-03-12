@@ -14,53 +14,57 @@ export async function POST(request) {
 
     // 수동 알림은 모든 유저에게 발송
     const isManual = type === 'manual';
+    let tokens = [];
 
-    let prefs;
     if (isManual) {
-      const { data } = await supabase
-        .from('notification_preferences')
-        .select('user_id, low_balance_threshold')
+      // 수동 알림: FCM 토큰이 있는 모든 유저에게 발송 (알림 설정 무관)
+      const { data: tokenRows } = await supabase
+        .from('fcm_tokens')
+        .select('token')
         .eq('company_id', companyId);
-      prefs = data;
+
+      if (!tokenRows || tokenRows.length === 0) {
+        return Response.json({ sent: 0 });
+      }
+      tokens = tokenRows.map(r => r.token);
     } else {
       const prefColumn = type === 'order_registered'
         ? 'order_registered_enabled'
         : 'low_balance_enabled';
 
-      const { data } = await supabase
+      const { data: prefs } = await supabase
         .from('notification_preferences')
         .select('user_id, low_balance_threshold')
         .eq('company_id', companyId)
         .eq(prefColumn, true);
-      prefs = data;
-    }
 
-    if (!prefs || prefs.length === 0) {
-      return Response.json({ sent: 0 });
-    }
+      if (!prefs || prefs.length === 0) {
+        return Response.json({ sent: 0 });
+      }
 
-    const userIds = prefs.map(p => p.user_id);
+      const userIds = prefs.map(p => p.user_id);
 
-    // 해당 유저들의 FCM 토큰 조회
-    const { data: tokenRows } = await supabase
-      .from('fcm_tokens')
-      .select('token, user_id')
-      .eq('company_id', companyId)
-      .in('user_id', userIds);
+      const { data: tokenRows } = await supabase
+        .from('fcm_tokens')
+        .select('token, user_id')
+        .eq('company_id', companyId)
+        .in('user_id', userIds);
 
-    if (!tokenRows || tokenRows.length === 0) {
-      return Response.json({ sent: 0 });
-    }
+      if (!tokenRows || tokenRows.length === 0) {
+        return Response.json({ sent: 0 });
+      }
 
-    // 잔액 부족 알림인 경우, 임계값 체크
-    let tokens = tokenRows.map(r => r.token);
-    if (type === 'low_balance' && data?.balance !== undefined) {
-      const relevantUserIds = prefs
-        .filter(p => data.balance < (p.low_balance_threshold || 5000))
-        .map(p => p.user_id);
-      tokens = tokenRows
-        .filter(r => relevantUserIds.includes(r.user_id))
-        .map(r => r.token);
+      tokens = tokenRows.map(r => r.token);
+
+      // 잔액 부족 알림인 경우, 임계값 체크
+      if (type === 'low_balance' && data?.balance !== undefined) {
+        const relevantUserIds = prefs
+          .filter(p => data.balance < (p.low_balance_threshold || 5000))
+          .map(p => p.user_id);
+        tokens = tokenRows
+          .filter(r => relevantUserIds.includes(r.user_id))
+          .map(r => r.token);
+      }
     }
 
     if (tokens.length === 0) {
