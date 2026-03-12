@@ -41,10 +41,10 @@ export default function RootLayout({ children }) {
           strategy="afterInteractive"
         />
         {/* Google AdSense */}
-        <Script
+        <script
+          async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1265314191139623"
           crossOrigin="anonymous"
-          strategy="beforeInteractive"
         />
       </head>
       <body className={notoSansKR.className}>
