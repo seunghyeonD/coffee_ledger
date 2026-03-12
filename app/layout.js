@@ -25,6 +25,10 @@ export const metadata = {
     description: '사내 커피 비용 관리 서비스',
     images: ['/og-image.png'],
   },
+  icons: {
+    icon: '/icon-192.png',
+    apple: '/apple-touch-icon.png',
+  },
   verification: {
     google: 'qwScbmyNfsd16_eeSLZk8kePN1nnVFuuZtjXJQDTX80',
   },
