@@ -2356,7 +2356,7 @@ body {
   padding: 6px 10px;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  font-size: 14px;
+  font-size: 16px;
   text-align: right;
 }
 
@@ -2511,7 +2511,7 @@ body {
   padding: 4px 8px;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  font-size: 13px;
+  font-size: 16px;
 }
 
 .role-member-email {
@@ -2539,7 +2539,7 @@ body {
   padding: 6px 10px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  font-size: 13px;
+  font-size: 16px;
   background: white;
   cursor: pointer;
 }
@@ -2580,6 +2580,7 @@ body {
   resize: vertical;
   min-height: 60px;
   padding: 10px 12px;
+  font-size: 16px;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: 14px;
