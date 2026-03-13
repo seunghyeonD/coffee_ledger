@@ -1,5 +1,6 @@
 import { getAdminMessaging } from '@/lib/firebase-admin';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
+import { verifyAuth, validateString, isValidUUID } from '@/lib/api-auth';
 
 export async function POST(request) {
   try {
@@ -10,6 +11,51 @@ export async function POST(request) {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
+    if (!isValidUUID(companyId)) {
+      return Response.json({ error: 'Invalid companyId format' }, { status: 400 });
+    }
+
+    // type 허용 목록 확인
+    const allowedTypes = ['order_registered', 'low_balance', 'manual'];
+    if (!allowedTypes.includes(type)) {
+      return Response.json({ error: 'Invalid notification type' }, { status: 400 });
+    }
+
+    // data 필드 검증
+    if (data) {
+      if (data.memberName) {
+        const err = validateString(data.memberName, 'memberName', 100);
+        if (err) return Response.json({ error: err }, { status: 400 });
+      }
+      if (data.menuName) {
+        const err = validateString(data.menuName, 'menuName', 100);
+        if (err) return Response.json({ error: err }, { status: 400 });
+      }
+      if (data.title) {
+        const err = validateString(data.title, 'title', 200);
+        if (err) return Response.json({ error: err }, { status: 400 });
+      }
+      if (data.body) {
+        const err = validateString(data.body, 'body', 1000);
+        if (err) return Response.json({ error: err }, { status: 400 });
+      }
+      if (data.price !== undefined && (typeof data.price !== 'number' || !isFinite(data.price))) {
+        return Response.json({ error: 'price must be a finite number' }, { status: 400 });
+      }
+      if (data.balance !== undefined && (typeof data.balance !== 'number' || !isFinite(data.balance))) {
+        return Response.json({ error: 'balance must be a finite number' }, { status: 400 });
+      }
+    }
+
+    // 인증 + 기업 소속 확인 (수동 알림은 관리자만)
+    if (type === 'manual') {
+      const { error: authError } = await verifyAuth(request, companyId, { roles: ['master', 'admin'] });
+      if (authError) return authError;
+    } else {
+      const { error: authError } = await verifyAuth(request, companyId);
+      if (authError) return authError;
+    }
+
     const supabase = getSupabaseAdmin();
 
     // 수동 알림은 모든 유저에게 발송
@@ -17,17 +63,14 @@ export async function POST(request) {
     let tokens = [];
 
     if (isManual) {
-      // 수동 알림: FCM 토큰이 있는 모든 유저에게 발송 (알림 설정 무관)
       const { data: tokenRows, error: tokenError } = await supabase
         .from('fcm_tokens')
         .select('token')
         .eq('company_id', companyId)
         .eq('enabled', true);
 
-      console.log('Manual noti - companyId:', companyId, 'tokens found:', tokenRows?.length, 'error:', tokenError);
-
       if (!tokenRows || tokenRows.length === 0) {
-        return Response.json({ sent: 0, debug: { companyId, tokensFound: 0, error: tokenError?.message } });
+        return Response.json({ sent: 0 });
       }
       tokens = tokenRows.map(r => r.token);
     } else {
@@ -104,22 +147,16 @@ export async function POST(request) {
       },
     });
 
-    // 에러 상세 로깅 및 만료된 토큰 정리
+    // 만료된 토큰 정리
     const staleTokens = [];
-    const errors = [];
     response.responses.forEach((res, i) => {
       if (res.error) {
-        errors.push({ code: res.error.code, message: res.error.message });
         if (res.error.code === 'messaging/registration-token-not-registered' ||
             res.error.code === 'messaging/invalid-registration-token') {
           staleTokens.push(tokens[i]);
         }
       }
     });
-
-    if (errors.length > 0) {
-      console.log('FCM send errors:', JSON.stringify(errors));
-    }
 
     if (staleTokens.length > 0) {
       await supabase.from('fcm_tokens').delete().in('token', staleTokens);
@@ -128,7 +165,6 @@ export async function POST(request) {
     return Response.json({
       sent: response.successCount,
       failed: response.failureCount,
-      errors: errors.length > 0 ? errors : undefined,
     });
   } catch (error) {
     console.error('Notification send error:', error);
@@ -141,17 +177,17 @@ function buildNotification(type, data) {
     case 'order_registered':
       return {
         title: '새 주문 등록',
-        body: `${data.memberName}님이 ${data.menuName} (${Number(data.price).toLocaleString()}원)을 주문했습니다.`,
+        body: `${String(data.memberName || '')}님이 ${String(data.menuName || '')} (${Number(data.price).toLocaleString()}원)을 주문했습니다.`,
       };
     case 'low_balance':
       return {
         title: '잔액 부족 알림',
-        body: `${data.memberName}님의 잔액이 ${Number(data.balance).toLocaleString()}원입니다. 충전이 필요합니다.`,
+        body: `${String(data.memberName || '')}님의 잔액이 ${Number(data.balance).toLocaleString()}원입니다. 충전이 필요합니다.`,
       };
     case 'manual':
       return {
-        title: data?.title || '커피 대장부',
-        body: data?.body || '새로운 알림이 있습니다.',
+        title: String(data?.title || '커피 대장부').slice(0, 200),
+        body: String(data?.body || '새로운 알림이 있습니다.').slice(0, 1000),
       };
     default:
       return { title: '커피 대장부', body: '새로운 알림이 있습니다.' };

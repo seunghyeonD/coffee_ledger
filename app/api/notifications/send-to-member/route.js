@@ -1,5 +1,6 @@
 import { getAdminMessaging } from '@/lib/firebase-admin';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
+import { verifyAuth, validateString, isValidUUID } from '@/lib/api-auth';
 
 export async function POST(request) {
   try {
@@ -8,6 +9,27 @@ export async function POST(request) {
     if (!companyId || !memberName) {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
     }
+
+    if (!isValidUUID(companyId)) {
+      return Response.json({ error: 'Invalid companyId format' }, { status: 400 });
+    }
+
+    const nameErr = validateString(memberName, 'memberName', 100);
+    if (nameErr) {
+      return Response.json({ error: nameErr }, { status: 400 });
+    }
+
+    if (balance !== undefined && (typeof balance !== 'number' || !isFinite(balance))) {
+      return Response.json({ error: 'balance must be a finite number' }, { status: 400 });
+    }
+
+    if (autoTriggered !== undefined && typeof autoTriggered !== 'boolean') {
+      return Response.json({ error: 'autoTriggered must be a boolean' }, { status: 400 });
+    }
+
+    // 인증 + 기업 소속 확인
+    const { error: authError } = await verifyAuth(request, companyId);
+    if (authError) return authError;
 
     const supabase = getSupabaseAdmin();
 
@@ -22,7 +44,7 @@ export async function POST(request) {
       return Response.json({ sent: 0, matched: 0, reason: 'no_users_with_names' });
     }
 
-    // 이름 매칭: 멤버 이름이 유저 이름에 포함되거나, 유저 이름이 멤버 이름에 포함
+    // 이름 매칭
     const matchedUserIds = ucData
       .filter(uc => {
         const ucName = uc.name.trim().toLowerCase();
@@ -49,9 +71,9 @@ export async function POST(request) {
         return Response.json({ sent: 0, matched: matchedUserIds.length, reason: 'noti_disabled' });
       }
 
-      // 임계값 체크: 잔액이 설정 금액 이하인 유저만
+      // 임계값 체크
       filteredUserIds = prefs
-        .filter(p => balance !== undefined ? Number(balance) < (p.low_balance_threshold || 5000) : true)
+        .filter(p => balance !== undefined ? balance < (p.low_balance_threshold || 5000) : true)
         .map(p => p.user_id);
 
       if (filteredUserIds.length === 0) {
@@ -78,7 +100,7 @@ export async function POST(request) {
       tokens,
       notification: {
         title: '충전 요청',
-        body: `${memberName}님, 현재 잔액이 ${balanceText}원입니다. 커피비 충전을 부탁드립니다.`,
+        body: `${String(memberName)}님, 현재 잔액이 ${balanceText}원입니다. 커피비 충전을 부탁드립니다.`,
         image: 'https://coffeeledger.co.kr/notification-icon.png',
       },
       webpush: {

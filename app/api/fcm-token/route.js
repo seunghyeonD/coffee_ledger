@@ -1,4 +1,5 @@
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
+import { verifyAuth, validateString, isValidUUID } from '@/lib/api-auth';
 
 // FCM 토큰 상태 조회
 export async function GET(request) {
@@ -9,6 +10,17 @@ export async function GET(request) {
 
     if (!userId || !companyId) {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    if (!isValidUUID(userId) || !isValidUUID(companyId)) {
+      return Response.json({ error: 'Invalid parameter format' }, { status: 400 });
+    }
+
+    // 인증 + 기업 소속 확인 (본인의 토큰 상태만 조회 가능)
+    const { user, error } = await verifyAuth(request, companyId);
+    if (error) return error;
+    if (user.id !== userId) {
+      return Response.json({ error: 'Forbidden: can only check own token status' }, { status: 403 });
     }
 
     const supabase = getSupabaseAdmin();
@@ -35,6 +47,22 @@ export async function POST(request) {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
+    if (!isValidUUID(userId) || !isValidUUID(companyId)) {
+      return Response.json({ error: 'Invalid parameter format' }, { status: 400 });
+    }
+
+    const tokenErr = validateString(token, 'token', 500);
+    if (tokenErr) {
+      return Response.json({ error: tokenErr }, { status: 400 });
+    }
+
+    // 인증 + 기업 소속 확인 (본인의 토큰만 등록 가능)
+    const { user, error: authError } = await verifyAuth(request, companyId);
+    if (authError) return authError;
+    if (user.id !== userId) {
+      return Response.json({ error: 'Forbidden: can only register own token' }, { status: 403 });
+    }
+
     const supabase = getSupabaseAdmin();
 
     // 같은 유저+기업의 기존 토큰 삭제 후 새 토큰 등록 (중복 방지)
@@ -49,7 +77,7 @@ export async function POST(request) {
 
     if (error) {
       console.error('FCM token insert error:', error);
-      return Response.json({ error: error.message }, { status: 500 });
+      return Response.json({ error: 'Failed to register token' }, { status: 500 });
     }
 
     return Response.json({ success: true });
@@ -68,6 +96,21 @@ export async function PATCH(request) {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
+    if (!isValidUUID(userId) || !isValidUUID(companyId)) {
+      return Response.json({ error: 'Invalid parameter format' }, { status: 400 });
+    }
+
+    if (typeof enabled !== 'boolean') {
+      return Response.json({ error: 'enabled must be a boolean' }, { status: 400 });
+    }
+
+    // 인증 + 기업 소속 확인 (본인의 토큰만 변경 가능)
+    const { user, error: authError } = await verifyAuth(request, companyId);
+    if (authError) return authError;
+    if (user.id !== userId) {
+      return Response.json({ error: 'Forbidden: can only modify own token' }, { status: 403 });
+    }
+
     const supabase = getSupabaseAdmin();
     const { error } = await supabase.from('fcm_tokens')
       .update({ enabled })
@@ -76,7 +119,7 @@ export async function PATCH(request) {
 
     if (error) {
       console.error('FCM token update error:', error);
-      return Response.json({ error: error.message }, { status: 500 });
+      return Response.json({ error: 'Failed to update token' }, { status: 500 });
     }
 
     return Response.json({ success: true });
@@ -95,6 +138,22 @@ export async function DELETE(request) {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
+    if (!isValidUUID(userId)) {
+      return Response.json({ error: 'Invalid parameter format' }, { status: 400 });
+    }
+
+    const tokenErr = validateString(token, 'token', 500);
+    if (tokenErr) {
+      return Response.json({ error: tokenErr }, { status: 400 });
+    }
+
+    // 인증 확인 (본인의 토큰만 삭제 가능)
+    const { user, error: authError } = await verifyAuth(request, null);
+    if (authError) return authError;
+    if (user.id !== userId) {
+      return Response.json({ error: 'Forbidden: can only delete own token' }, { status: 403 });
+    }
+
     const supabase = getSupabaseAdmin();
     const { error } = await supabase.from('fcm_tokens').delete()
       .eq('user_id', userId)
@@ -102,7 +161,7 @@ export async function DELETE(request) {
 
     if (error) {
       console.error('FCM token delete error:', error);
-      return Response.json({ error: error.message }, { status: 500 });
+      return Response.json({ error: 'Failed to unregister token' }, { status: 500 });
     }
 
     return Response.json({ success: true });

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useStore } from '@/lib/store';
 import { useAuth } from '@/lib/auth';
+import { authFetch } from '@/lib/api-fetch';
 import { formatMoney } from '@/lib/utils';
 import { canDo } from '@/lib/roles';
 import Modal from '@/components/Modal';
@@ -66,7 +67,7 @@ export default function Members({ showToast }) {
   const handleSendChargeNotification = async (member, balance) => {
     setSendingNoti(member.id);
     try {
-      const res = await fetch('/api/notifications/send-to-member', {
+      const res = await authFetch('/api/notifications/send-to-member', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

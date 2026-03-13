@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth';
 import { useStore } from '@/lib/store';
+import { authFetch } from '@/lib/api-fetch';
 import { canDo, ROLE_LABELS } from '@/lib/roles';
 import NotificationSettings from './NotificationSettings';
 
@@ -87,7 +88,7 @@ export default function SettingsPage({ showToast }) {
     setSendingNoti(true);
     try {
       console.log('Sending manual noti - companyId:', company?.id);
-      const res = await fetch('/api/notifications/send', {
+      const res = await authFetch('/api/notifications/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
+import { verifyAuth, validateString, isValidUUID } from '@/lib/api-auth';
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
@@ -9,6 +10,14 @@ export async function GET(request) {
     return NextResponse.json({ error: 'companyId is required' }, { status: 400 });
   }
 
+  if (!isValidUUID(companyId)) {
+    return NextResponse.json({ error: 'Invalid companyId format' }, { status: 400 });
+  }
+
+  // 인증 + 기업 소속 확인
+  const { error: authError } = await verifyAuth(request, companyId);
+  if (authError) return authError;
+
   const supabase = getSupabaseAdmin();
 
   const { data: ucData, error: ucError } = await supabase
@@ -17,7 +26,7 @@ export async function GET(request) {
     .eq('company_id', companyId);
 
   if (ucError) {
-    return NextResponse.json({ error: ucError.message }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to fetch members' }, { status: 500 });
   }
 
   const members = await Promise.all(
@@ -44,6 +53,21 @@ export async function PATCH(request) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
   }
 
+  if (!isValidUUID(companyId) || !isValidUUID(userId)) {
+    return NextResponse.json({ error: 'Invalid parameter format' }, { status: 400 });
+  }
+
+  if (name !== undefined) {
+    const nameErr = validateString(name, 'name', 100);
+    if (nameErr) {
+      return NextResponse.json({ error: nameErr }, { status: 400 });
+    }
+  }
+
+  // 인증 + 관리자 권한 확인
+  const { error: authError } = await verifyAuth(request, companyId, { roles: ['master', 'admin'] });
+  if (authError) return authError;
+
   const supabase = getSupabaseAdmin();
   const { error } = await supabase
     .from('user_companies')
@@ -52,7 +76,7 @@ export async function PATCH(request) {
     .eq('company_id', companyId);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to update name' }, { status: 500 });
   }
 
   return NextResponse.json({ success: true });
@@ -68,6 +92,14 @@ export async function DELETE(request) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
   }
 
+  if (!isValidUUID(companyId) || !isValidUUID(userId)) {
+    return NextResponse.json({ error: 'Invalid parameter format' }, { status: 400 });
+  }
+
+  // 인증 + 관리자 권한 확인
+  const { error: authError } = await verifyAuth(request, companyId, { roles: ['master', 'admin'] });
+  if (authError) return authError;
+
   const supabase = getSupabaseAdmin();
   const { error } = await supabase
     .from('user_companies')
@@ -76,7 +108,7 @@ export async function DELETE(request) {
     .eq('company_id', companyId);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to remove member' }, { status: 500 });
   }
 
   // FCM 토큰, 알림 설정도 정리
