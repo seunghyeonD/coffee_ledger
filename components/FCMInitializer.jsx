@@ -8,6 +8,7 @@ export default function FCMInitializer({ showToast }) {
   const { user } = useAuth();
   const { companyId, loaded } = useStore();
   const showToastRef = useRef(showToast);
+  const initialized = useRef(false);
   showToastRef.current = showToast;
 
   useEffect(() => {
@@ -17,26 +18,19 @@ export default function FCMInitializer({ showToast }) {
   }, []);
 
   useEffect(() => {
-    if (!user || !companyId || !loaded) return;
+    if (!user || !companyId || !loaded || initialized.current) return;
+    initialized.current = true;
 
-    // 이미 알림 권한이 허용된 경우에만 토큰 자동 갱신
-    if (typeof window === 'undefined' || !('Notification' in window)) return;
-    if (Notification.permission !== 'granted') return;
-
-    let unsubscribe = () => {};
-
-    import('@/lib/fcm').then(async ({ requestNotificationPermission, setupForegroundListener }) => {
-      // 권한이 이미 허용된 상태이므로 토큰만 갱신 (permission 요청 팝업 없음)
-      await requestNotificationPermission(user.id, companyId);
+    import('@/lib/fcm').then(async ({ refreshFCMToken, setupForegroundListener }) => {
+      // 이미 권한 허용된 경우에만 토큰 자동 갱신 (권한 요청 팝업 없음)
+      await refreshFCMToken(user.id, companyId);
 
       // 포그라운드 메시지 리스너
       const unsub = await setupForegroundListener((title, body) => {
         if (showToastRef.current) showToastRef.current(`${title}: ${body}`);
       });
-      unsubscribe = unsub;
+      return unsub;
     }).catch(() => {});
-
-    return () => unsubscribe();
   }, [user, companyId, loaded]);
 
   return null;
