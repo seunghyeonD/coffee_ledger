@@ -1,0 +1,45 @@
+{
+  "appName": "Coffee Ledger",
+  "cancel": "Cancel",
+  "checkSupabase": "Please check Supabase connection.",
+  "close": "OK",
+  "count": "{{count}}",
+  "dayNames": [
+    "Sun",
+    "Mon",
+    "Tue",
+    "Wed",
+    "Thu",
+    "Fri",
+    "Sat"
+  ],
+  "delete": "Delete",
+  "deleteFailed": "Delete failed",
+  "edit": "Edit",
+  "error": "Error: {{message}}",
+  "loadFailed": "Failed to load data",
+  "loading": "Loading...",
+  "loadingData": "Loading data...",
+  "logout": "Log out",
+  "none": "None",
+  "preparingCoffee": "Preparing coffee...",
+  "processing": "Processing...",
+  "save": "Save",
+  "saveFailed": "Save failed",
+  "supabaseError": "Supabase connection failed",
+  "today": "Today",
+  "unknown": "Unknown",
+  "weekdays": [
+    "Mon",
+    "Tue",
+    "Wed",
+    "Thu",
+    "Fri"
+  ],
+  "weekends": [
+    "Sat",
+    "Sun"
+  ],
+  "won": "KRW",
+  "yearMonth": "{{month}}/{{year}}"
+}

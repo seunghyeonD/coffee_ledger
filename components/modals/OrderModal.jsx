@@ -1,13 +1,15 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useStore } from '@/lib/store';
 import { useAuth } from '@/lib/auth';
-import { formatMoney, DAY_NAMES } from '@/lib/utils';
+import { formatMoney } from '@/lib/utils';
 import { canDo } from '@/lib/roles';
 import Modal from '@/components/Modal';
 
 export default function OrderModal({ date, onClose, showToast }) {
+  const { t } = useTranslation(['orders', 'common']);
   const { shops, members, getMemberBalance, getOrdersByDate, addOrder, deleteOrder } = useStore();
   const { userRole } = useAuth();
   const [step, setStep] = useState(1);
@@ -17,7 +19,8 @@ export default function OrderModal({ date, onClose, showToast }) {
   const [menuSearch, setMenuSearch] = useState('');
 
   const d = new Date(date);
-  const dateLabel = `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일 (${DAY_NAMES[d.getDay()]})`;
+  const dayNames = t('common:dayNames', { returnObjects: true });
+  const dateLabel = t('dateFormat', { year: d.getFullYear(), month: d.getMonth() + 1, day: d.getDate(), dayName: dayNames[d.getDay()] });
   const dayOrders = getOrdersByDate(date);
   const selectedShop = shops.find(s => s.id === shopId);
 
@@ -28,11 +31,11 @@ export default function OrderModal({ date, onClose, showToast }) {
 
   const handleMenuSelect = (menu) => {
     if (menu.price === 0) {
-      const price = prompt('가격을 입력해주세요 (원):');
+      const price = prompt(t('enterPrice'));
       if (!price) return;
       const p = Number(price);
-      if (isNaN(p) || p <= 0) { showToast('올바른 가격을 입력해주세요'); return; }
-      const name = prompt('메뉴명을 입력해주세요:', '기타') || '기타';
+      if (isNaN(p) || p <= 0) { showToast(t('invalidPrice')); return; }
+      const name = prompt(t('enterMenuName'), t('customMenu')) || t('customMenu');
       setMenuName(name);
       setMenuPrice(p);
     } else {
@@ -45,33 +48,32 @@ export default function OrderModal({ date, onClose, showToast }) {
   const handleMemberSelect = async (memberId) => {
     try {
       await addOrder(date, memberId, shopId, menuName, menuPrice);
-      showToast('주문이 등록되었습니다!');
+      showToast(t('orderRegistered'));
     } catch (e) {
-      showToast('오류: ' + (e.message || '주문 등록 실패'));
+      showToast(t('common:error', { message: e.message || t('orderFailed') }));
     }
   };
 
   const handleDeleteOrder = async (id) => {
-    if (confirm('이 주문을 삭제하시겠습니까?')) {
+    if (confirm(t('confirmDeleteOrder'))) {
       try {
         await deleteOrder(id);
-        showToast('주문이 삭제되었습니다.');
+        showToast(t('orderDeleted'));
       } catch (e) {
-        showToast('오류: ' + (e.message || '삭제 실패'));
+        showToast(t('common:error', { message: e.message || t('common:deleteFailed') }));
       }
     }
   };
 
   return (
-    <Modal open={true} onClose={onClose} title="주문 등록" large>
+    <Modal open={true} onClose={onClose} title={t('title')} large>
       <div className="order-date-display">{dateLabel}</div>
 
-      {/* Step 1: Shop */}
       {step === 1 && canDo(userRole, 'addOrder') && (
         <div className="order-step">
-          <h3>1. 업체 선택</h3>
+          <h3>{t('step1')}</h3>
           {shops.length === 0 ? (
-            <div className="empty-state">등록된 업체가 없습니다. 메뉴 관리에서 추가해주세요.</div>
+            <div className="empty-state">{t('noShops')}</div>
           ) : (
             <div className="shop-selector">
               {shops.map(s => (
@@ -89,17 +91,16 @@ export default function OrderModal({ date, onClose, showToast }) {
         </div>
       )}
 
-      {/* Step 2: Menu */}
       {step === 2 && selectedShop && (
         <div className="order-step">
           <h3>
-            2. 메뉴 선택
-            <button className="btn-link" onClick={() => { setStep(1); setMenuSearch(''); }}>&larr; 업체 다시 선택</button>
+            {t('step2')}
+            <button className="btn-link" onClick={() => { setStep(1); setMenuSearch(''); }}>{t('reselectShop')}</button>
           </h3>
           <input
             type="text"
             className="menu-search-input"
-            placeholder="메뉴 검색..."
+            placeholder={t('searchMenu')}
             value={menuSearch}
             onChange={e => setMenuSearch(e.target.value)}
           />
@@ -109,22 +110,21 @@ export default function OrderModal({ date, onClose, showToast }) {
               .map(m => (
                 <button key={m.id} className="menu-select-btn" onClick={() => handleMenuSelect(m)}>
                   <div className="menu-btn-name">{m.name}</div>
-                  <div className="menu-btn-price">{m.price > 0 ? formatMoney(m.price) : '직접 입력'}</div>
+                  <div className="menu-btn-price">{m.price > 0 ? formatMoney(m.price) : t('customInput')}</div>
                 </button>
               ))}
             {selectedShop.menus.filter(m => !menuSearch || m.name.toLowerCase().includes(menuSearch.toLowerCase())).length === 0 && (
-              <div className="empty-state" style={{ gridColumn: '1 / -1' }}>검색 결과가 없습니다.</div>
+              <div className="empty-state" style={{ gridColumn: '1 / -1' }}>{t('noSearchResults')}</div>
             )}
           </div>
         </div>
       )}
 
-      {/* Step 3: Member */}
       {step === 3 && (
         <div className="order-step">
           <h3>
-            3. 멤버 선택
-            <button className="btn-link" onClick={() => setStep(2)}>&larr; 메뉴 다시 선택</button>
+            {t('step3')}
+            <button className="btn-link" onClick={() => setStep(2)}>{t('reselectMenu')}</button>
           </h3>
           <div className="selected-menu-info">
             <span>{menuName}</span>
@@ -141,11 +141,10 @@ export default function OrderModal({ date, onClose, showToast }) {
         </div>
       )}
 
-      {/* Day Orders */}
       <div className="day-orders-section">
-        <h3>이 날의 주문</h3>
+        <h3>{t('todayOrders')}</h3>
         {dayOrders.length === 0 ? (
-          <div className="empty-state">이 날의 주문이 없습니다.</div>
+          <div className="empty-state">{t('noTodayOrders')}</div>
         ) : (
           dayOrders.map(o => {
             const member = members.find(m => m.id === o.member_id);

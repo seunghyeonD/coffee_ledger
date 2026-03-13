@@ -1,30 +1,42 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/lib/auth';
 import { useStore } from '@/lib/store';
 import { authFetch } from '@/lib/api-fetch';
-import { canDo, ROLE_LABELS } from '@/lib/roles';
+import { canDo, getRoleLabel } from '@/lib/roles';
 import NotificationSettings from './NotificationSettings';
 
 export default function SettingsPage({ showToast }) {
+  const { t } = useTranslation(['settings', 'common', 'company']);
   const { signOut, clearCompany, userRole, getCompanyMembers, updateMemberRole, updateMemberName, removeMember, user, company } = useAuth();
   const store = useStore();
   const [activeTab, setActiveTab] = useState('notifications');
   const [companyMembers, setCompanyMembers] = useState([]);
   const [loadingMembers, setLoadingMembers] = useState(false);
-  const [editingName, setEditingName] = useState(null); // { userId, name }
+  const [editingName, setEditingName] = useState(null);
   const [notiTitle, setNotiTitle] = useState('');
   const [notiBody, setNotiBody] = useState('');
   const [sendingNoti, setSendingNoti] = useState(false);
 
+  const { i18n } = useTranslation();
+  const currentLang = i18n.language;
+
+  const handleLanguageChange = (lng) => {
+    i18n.changeLanguage(lng);
+    localStorage.setItem('i18nextLng', lng);
+    document.documentElement.lang = lng;
+  };
+
   const tabs = [
-    { key: 'notifications', label: '알림' },
-    ...(canDo(userRole, 'manageRoles') ? [{ key: 'roles', label: '역할 관리' }] : []),
-    ...(canDo(userRole, 'sendNotification') ? [{ key: 'send-noti', label: '알림 발송' }] : []),
-    { key: 'company-info', label: '기업 정보', mobileOnly: true },
-    { key: 'export', label: '보고서', mobileOnly: true },
-    { key: 'account', label: '계정', mobileOnly: true },
+    { key: 'notifications', label: t('tabs.notification') },
+    ...(canDo(userRole, 'manageRoles') ? [{ key: 'roles', label: t('tabs.roles') }] : []),
+    ...(canDo(userRole, 'sendNotification') ? [{ key: 'send-noti', label: t('tabs.broadcast') }] : []),
+    { key: 'language', label: t('language.title') },
+    { key: 'company-info', label: t('tabs.company'), mobileOnly: true },
+    { key: 'export', label: t('tabs.report'), mobileOnly: true },
+    { key: 'account', label: t('tabs.account'), mobileOnly: true },
   ];
 
   useEffect(() => {
@@ -39,7 +51,7 @@ export default function SettingsPage({ showToast }) {
       const data = await getCompanyMembers();
       setCompanyMembers(data);
     } catch (e) {
-      showToast('멤버 목록을 불러오지 못했습니다.');
+      showToast(t('roles.loadFailed'));
     } finally {
       setLoadingMembers(false);
     }
@@ -51,9 +63,9 @@ export default function SettingsPage({ showToast }) {
       setCompanyMembers(prev =>
         prev.map(m => m.userId === targetUserId ? { ...m, role: newRole } : m)
       );
-      showToast('역할이 변경되었습니다.');
+      showToast(t('roles.roleChanged'));
     } catch (e) {
-      showToast('오류: ' + (e.message || '역할 변경 실패'));
+      showToast(t('common:error', { message: e.message || t('roles.roleChangeFailed') }));
     }
   };
 
@@ -65,20 +77,20 @@ export default function SettingsPage({ showToast }) {
         prev.map(m => m.userId === targetUserId ? { ...m, name: editingName.name } : m)
       );
       setEditingName(null);
-      showToast('이름이 변경되었습니다.');
+      showToast(t('roles.nameChanged'));
     } catch (e) {
-      showToast('오류: ' + (e.message || '이름 변경 실패'));
+      showToast(t('common:error', { message: e.message || t('roles.nameChangeFailed') }));
     }
   };
 
   const handleRemoveMember = async (targetUserId, email) => {
-    if (!confirm(`'${email}'을(를) 이 기업에서 제거하시겠습니까?\n해당 유저의 알림 설정도 함께 삭제됩니다.`)) return;
+    if (!confirm(t('roles.confirmRemoveUser', { email }))) return;
     try {
       await removeMember(targetUserId);
       setCompanyMembers(prev => prev.filter(m => m.userId !== targetUserId));
-      showToast('유저가 제거되었습니다.');
+      showToast(t('roles.userRemoved'));
     } catch (e) {
-      showToast('오류: ' + (e.message || '유저 제거 실패'));
+      showToast(t('common:error', { message: e.message || t('roles.userRemoveFailed') }));
     }
   };
 
@@ -87,7 +99,6 @@ export default function SettingsPage({ showToast }) {
     if (!notiTitle.trim() || !notiBody.trim()) return;
     setSendingNoti(true);
     try {
-      console.log('Sending manual noti - companyId:', company?.id);
       const res = await authFetch('/api/notifications/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -98,12 +109,11 @@ export default function SettingsPage({ showToast }) {
         }),
       });
       const result = await res.json();
-      console.log('Manual noti result:', JSON.stringify(result));
-      showToast(`알림이 ${result.sent || 0}명에게 발송되었습니다.`);
+      showToast(t('broadcast.sent', { count: result.sent || 0 }));
       setNotiTitle('');
       setNotiBody('');
     } catch (e) {
-      showToast('알림 발송에 실패했습니다.');
+      showToast(t('broadcast.sendFailed'));
     } finally {
       setSendingNoti(false);
     }
@@ -118,6 +128,8 @@ export default function SettingsPage({ showToast }) {
   const handleSignOut = async () => {
     await signOut();
   };
+
+  const roleKeys = ['master', 'admin', 'assistant', 'user'];
 
   return (
     <div className="settings-page">
@@ -140,9 +152,9 @@ export default function SettingsPage({ showToast }) {
 
         {activeTab === 'roles' && canDo(userRole, 'manageRoles') && (
           <div className="settings-section">
-            <p className="settings-desc">기업 멤버들의 역할과 이름을 관리합니다.</p>
+            <p className="settings-desc">{t('roles.description')}</p>
             {loadingMembers ? (
-              <div className="empty-state">불러오는 중...</div>
+              <div className="empty-state">{t('roles.loading')}</div>
             ) : (
               <div className="role-management-list">
                 {companyMembers.map(m => {
@@ -158,23 +170,23 @@ export default function SettingsPage({ showToast }) {
                               className="role-name-input"
                               value={editingName.name}
                               onChange={e => setEditingName({ ...editingName, name: e.target.value })}
-                              placeholder="이름 입력"
+                              placeholder={t('roles.namePlaceholder')}
                               autoFocus
                               onKeyDown={e => e.key === 'Enter' && handleNameSave(m.userId)}
                             />
-                            <button className="btn btn-sm btn-primary" onClick={() => handleNameSave(m.userId)}>저장</button>
-                            <button className="btn btn-sm" onClick={() => setEditingName(null)}>취소</button>
+                            <button className="btn btn-sm btn-primary" onClick={() => handleNameSave(m.userId)}>{t('common:save')}</button>
+                            <button className="btn btn-sm" onClick={() => setEditingName(null)}>{t('common:cancel')}</button>
                           </div>
                         ) : (
                           <>
                             <div className="role-member-name-row">
-                              <span className="role-member-name">{m.name || '(이름 없음)'}</span>
+                              <span className="role-member-name">{m.name || t('roles.noName')}</span>
                               <button className="role-edit-name-btn" onClick={() => setEditingName({ userId: m.userId, name: m.name || '' })}>
-                                수정
+                                {t('common:edit')}
                               </button>
                             </div>
                             <span className="role-member-email">{m.email}</span>
-                            {isMe && <span className="role-member-me">(나)</span>}
+                            {isMe && <span className="role-member-me">{t('roles.me')}</span>}
                           </>
                         )}
                       </div>
@@ -185,15 +197,15 @@ export default function SettingsPage({ showToast }) {
                           onChange={e => handleRoleChange(m.userId, e.target.value)}
                           disabled={isMe}
                         >
-                          {Object.entries(ROLE_LABELS).map(([value, label]) => (
-                            <option key={value} value={value}>{label}</option>
+                          {roleKeys.map(key => (
+                            <option key={key} value={key}>{getRoleLabel(key)}</option>
                           ))}
                         </select>
                         {!isMe && canDo(userRole, 'removeUser') && (
                           <button
                             className="role-remove-btn"
                             onClick={() => handleRemoveMember(m.userId, m.email)}
-                            title="기업에서 제거"
+                            title={t('roles.removeFromCompany')}
                           >
                             &times;
                           </button>
@@ -209,32 +221,38 @@ export default function SettingsPage({ showToast }) {
 
         {activeTab === 'send-noti' && canDo(userRole, 'sendNotification') && (
           <div className="settings-section">
-            <p className="settings-desc">기업의 모든 멤버에게 수동으로 알림을 발송합니다.</p>
+            <p className="settings-desc">{t('broadcast.description')}</p>
             <form onSubmit={handleSendNotification} className="manual-noti-form">
               <div className="form-group">
-                <label>알림 제목</label>
-                <input
-                  type="text"
-                  value={notiTitle}
-                  onChange={e => setNotiTitle(e.target.value)}
-                  placeholder="예: 이번 달 충전 안내"
-                  required
-                />
+                <label>{t('broadcast.titleLabel')}</label>
+                <input type="text" value={notiTitle} onChange={e => setNotiTitle(e.target.value)} placeholder={t('broadcast.titlePlaceholder')} required />
               </div>
               <div className="form-group">
-                <label>알림 내용</label>
-                <textarea
-                  value={notiBody}
-                  onChange={e => setNotiBody(e.target.value)}
-                  placeholder="예: 3월 커피비를 충전해주세요."
-                  rows={3}
-                  required
-                />
+                <label>{t('broadcast.bodyLabel')}</label>
+                <textarea value={notiBody} onChange={e => setNotiBody(e.target.value)} placeholder={t('broadcast.bodyPlaceholder')} rows={3} required />
               </div>
               <button type="submit" className="btn btn-primary" disabled={sendingNoti} style={{ width: '100%' }}>
-                {sendingNoti ? '발송중...' : '알림 발송'}
+                {sendingNoti ? t('broadcast.sending') : t('broadcast.send')}
               </button>
             </form>
+          </div>
+        )}
+
+        {activeTab === 'language' && (
+          <div className="settings-section">
+            <p className="settings-desc">{t('language.description')}</p>
+            <div className="language-selector">
+              {['ko', 'en'].map(lng => (
+                <button
+                  key={lng}
+                  className={`language-btn ${currentLang === lng ? 'active' : ''}`}
+                  onClick={() => handleLanguageChange(lng)}
+                >
+                  <span className="language-flag">{lng === 'ko' ? '\uD83C\uDDF0\uD83C\uDDF7' : '\uD83C\uDDFA\uD83C\uDDF8'}</span>
+                  <span>{t(`language.${lng}`)}</span>
+                </button>
+              ))}
+            </div>
           </div>
         )}
 
@@ -242,23 +260,23 @@ export default function SettingsPage({ showToast }) {
           <div className="settings-section">
             <div className="company-info-card">
               <div className="company-info-row">
-                <span className="company-info-label">기업 이름</span>
+                <span className="company-info-label">{t('companyInfo.companyName')}</span>
                 <span className="company-info-value">{company?.name}</span>
               </div>
               <div className="company-info-row">
-                <span className="company-info-label">초대 코드</span>
+                <span className="company-info-label">{t('companyInfo.inviteCode')}</span>
                 <span className="company-info-value company-info-code">{company?.invite_code}</span>
               </div>
             </div>
-            <p className="settings-desc">초대 코드를 공유하면 다른 멤버가 기업에 참여할 수 있습니다.</p>
+            <p className="settings-desc">{t('companyInfo.inviteCodeDesc')}</p>
           </div>
         )}
 
         {activeTab === 'export' && (
           <div className="settings-section">
-            <p className="settings-desc">현재 데이터를 엑셀 파일로 다운로드합니다.</p>
+            <p className="settings-desc">{t('report.description')}</p>
             <button className="btn-settings-action" onClick={handleExport}>
-              엑셀 내보내기
+              {t('report.exportExcel')}
             </button>
           </div>
         )}
@@ -266,10 +284,10 @@ export default function SettingsPage({ showToast }) {
         {activeTab === 'account' && (
           <div className="settings-section">
             <button className="btn-settings-action" onClick={clearCompany}>
-              기업 전환
+              {t('company:switchCompany')}
             </button>
             <button className="btn-settings-action danger" onClick={handleSignOut}>
-              로그아웃
+              {t('common:logout')}
             </button>
           </div>
         )}

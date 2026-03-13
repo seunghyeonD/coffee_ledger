@@ -1,0 +1,32 @@
+{
+  "privacy": {
+    "article1Content": "The Service collects the following information for registration and service use: email address, name, and password (stored encrypted).",
+    "article1Title": "1. Personal Information Collected",
+    "article2Content": "Collected personal information is used for: member identification and authentication, service provision, announcements, and push notifications.",
+    "article2Title": "2. Purpose of Use",
+    "article3Content": "Personal information is immediately destroyed upon withdrawal. However, information may be retained for the period required by applicable laws.",
+    "article3Title": "3. Retention and Destruction",
+    "article4Content": "The Service does not provide personal information to third parties without member consent, except when required by law.",
+    "article4Title": "4. Third-Party Disclosure",
+    "article5Content": "Passwords are stored encrypted, and access to personal information is minimized. Data is transmitted securely via SSL/TLS.",
+    "article5Title": "5. Security Measures",
+    "article6Content": "The Service uses cookies to maintain login sessions. Push notifications are sent only with separate member consent.",
+    "article6Title": "6. Cookies and Notifications"
+  },
+  "privacyTitle": "Privacy Policy",
+  "terms": {
+    "article1Content": "These terms govern the conditions, procedures, rights, obligations, and other necessary matters regarding the use of the Coffee Ledger service (hereinafter \"Service\").",
+    "article1Title": "Article 1 (Purpose)",
+    "article2Content": "\"Service\" refers to the web application for managing in-house coffee expenses. \"Member\" refers to a person who has agreed to these terms and registered for the Service.",
+    "article2Title": "Article 2 (Definitions)",
+    "article3Content": "These terms apply to all members who wish to use the Service. The terms may be modified through in-service notices, and modified terms take effect after announcement.",
+    "article3Title": "Article 3 (Effectiveness of Terms)",
+    "article4Content": "Registration is completed through email verification. Members may request withdrawal at any time, and related data will be deleted upon withdrawal.",
+    "article4Title": "Article 4 (Registration and Withdrawal)",
+    "article5Content": "The Service must only be used for managing in-house coffee expenses. Use for fraudulent purposes may result in restricted access.",
+    "article5Title": "Article 5 (Use of Service)",
+    "article6Content": "The Service is provided free of charge, and we bear no legal liability for damages arising from use of the Service. We may provide prior notice of service interruption, modification, or termination.",
+    "article6Title": "Article 6 (Disclaimer)"
+  },
+  "termsTitle": "Terms of Service"
+}

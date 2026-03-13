@@ -1,0 +1,23 @@
+{
+  "confirmDeleteOrder": "Delete this order?",
+  "customInput": "Custom input",
+  "customMenu": "Other",
+  "dateFormat": "{{dayName}}, {{month}}/{{day}}/{{year}}",
+  "enterMenuName": "Enter menu name:",
+  "enterPrice": "Enter price (KRW):",
+  "invalidPrice": "Please enter a valid price",
+  "noSearchResults": "No results found.",
+  "noShops": "No shops registered. Please add one in Menu Management.",
+  "noTodayOrders": "No orders for this day.",
+  "orderDeleted": "Order deleted.",
+  "orderFailed": "Order registration failed",
+  "orderRegistered": "Order registered!",
+  "reselectMenu": "← Change menu",
+  "reselectShop": "← Change shop",
+  "searchMenu": "Search menu...",
+  "step1": "1. Select Shop",
+  "step2": "2. Select Menu",
+  "step3": "3. Select Member",
+  "title": "New Order",
+  "todayOrders": "Orders for this day"
+}

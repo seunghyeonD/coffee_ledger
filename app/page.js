@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/lib/auth';
 import { useStore } from '@/lib/store';
 import LoginPage from '@/components/LoginPage';
@@ -17,6 +18,7 @@ import FCMInitializer from '@/components/FCMInitializer';
 import Toast from '@/components/Toast';
 
 export default function Home() {
+  const { t } = useTranslation('common');
   const { user, company, passwordRecovery, loading: authLoading } = useAuth();
   const { loaded, init, reset } = useStore();
   const [page, setPage] = useState('dashboard');
@@ -28,17 +30,15 @@ export default function Home() {
     setTimeout(() => setToast(''), 2500);
   };
 
-  // 기업 선택 시 데이터 로드
   useEffect(() => {
     if (company) {
       setError(null);
-      init(company.id).catch(e => setError(e.message || 'Supabase 연결 실패'));
+      init(company.id).catch(e => setError(e.message || t('supabaseError')));
     } else {
       reset();
     }
   }, [company, init, reset]);
 
-  // 로딩 중
   if (authLoading) {
     return (
       <div className="auth-page">
@@ -49,29 +49,23 @@ export default function Home() {
               <span></span><span></span><span></span>
             </div>
           </div>
-          <p>커피 준비 중...</p>
+          <p>{t('preparingCoffee')}</p>
         </div>
       </div>
     );
   }
 
-  // 비밀번호 재설정 모드
   if (passwordRecovery) return <ResetPasswordPage />;
-
-  // 미로그인
   if (!user) return <LoginPage />;
-
-  // 기업 미선택
   if (!company) return <CompanySelectPage />;
 
-  // 데이터 에러
   if (error) {
     return (
       <div className="app-layout">
         <div className="loading-screen">
           <div style={{ textAlign: 'center' }}>
-            <h2>데이터 로드 실패</h2>
-            <p style={{ marginTop: 12, color: 'var(--text-secondary)' }}>Supabase 연결을 확인해주세요.</p>
+            <h2>{t('loadFailed')}</h2>
+            <p style={{ marginTop: 12, color: 'var(--text-secondary)' }}>{t('checkSupabase')}</p>
             <p style={{ marginTop: 8, color: 'var(--danger)', fontSize: 13 }}>{error}</p>
           </div>
         </div>
@@ -79,7 +73,6 @@ export default function Home() {
     );
   }
 
-  // 데이터 로딩 중
   if (!loaded) {
     return (
       <div className="auth-page">
@@ -90,7 +83,7 @@ export default function Home() {
               <span></span><span></span><span></span>
             </div>
           </div>
-          <p>데이터를 불러오는 중...</p>
+          <p>{t('loadingData')}</p>
         </div>
       </div>
     );

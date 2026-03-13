@@ -1,12 +1,14 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useStore } from '@/lib/store';
 import { useAuth } from '@/lib/auth';
 import { formatMoney } from '@/lib/utils';
 import { canDo } from '@/lib/roles';
 
 export default function History({ showToast }) {
+  const { t } = useTranslation(['history', 'common']);
   const { members, shops, getOrdersByMonth, getActiveMonths, deleteOrder } = useStore();
   const { userRole } = useAuth();
   const months = getActiveMonths();
@@ -20,12 +22,12 @@ export default function History({ showToast }) {
   orders = [...orders].sort((a, b) => a.date.localeCompare(b.date));
 
   const handleDelete = async (id) => {
-    if (confirm('이 주문을 삭제하시겠습니까?')) {
+    if (confirm(t('confirmDelete'))) {
       try {
         await deleteOrder(id);
-        showToast('주문이 삭제되었습니다.');
+        showToast(t('orderDeleted'));
       } catch (e) {
-        showToast('오류: ' + (e.message || '삭제 실패'));
+        showToast(t('common:error', { message: e.message || t('common:deleteFailed') }));
       }
     }
   };
@@ -33,13 +35,13 @@ export default function History({ showToast }) {
   return (
     <>
       <div className="page-header">
-        <h1>주문 내역</h1>
+        <h1>{t('title')}</h1>
         <div className="history-filters">
           <select className="select-input" value={selectedMonth} onChange={e => setSelectedMonth(e.target.value)}>
             {months.map(m => <option key={m} value={m}>{m}</option>)}
           </select>
           <select className="select-input" value={selectedMember} onChange={e => setSelectedMember(e.target.value)}>
-            <option value="">전체 멤버</option>
+            <option value="">{t('allMembers')}</option>
             {members.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
           </select>
         </div>
@@ -47,17 +49,17 @@ export default function History({ showToast }) {
 
       <div className="table-wrap">
         {orders.length === 0 ? (
-          <div className="empty-state">주문 내역이 없습니다.</div>
+          <div className="empty-state">{t('noOrders')}</div>
         ) : (
           <table>
             <thead>
               <tr>
-                <th>날짜</th>
-                <th>멤버</th>
-                <th>업체</th>
-                <th>메뉴</th>
-                <th>금액</th>
-                <th>비고</th>
+                <th>{t('date')}</th>
+                <th>{t('member')}</th>
+                <th>{t('shop')}</th>
+                <th>{t('menu')}</th>
+                <th>{t('amount')}</th>
+                <th>{t('note')}</th>
                 {canDo(userRole, 'deleteOrder') && <th></th>}
               </tr>
             </thead>

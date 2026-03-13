@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useStore } from '@/lib/store';
 import { useAuth } from '@/lib/auth';
 import { authFetch } from '@/lib/api-fetch';
@@ -9,35 +10,36 @@ import { canDo } from '@/lib/roles';
 import Modal from '@/components/Modal';
 
 export default function Members({ showToast }) {
+  const { t } = useTranslation(['members', 'common']);
   const { members, getMemberBalance, getDepositsByMember, addMember, updateMember, deleteMember, addDeposit, deleteDeposit, companyId } = useStore();
   const { userRole } = useAuth();
-  const [sendingNoti, setSendingNoti] = useState(null); // memberId being sent
-  const [memberModal, setMemberModal] = useState(null); // null | { id?, name, balance }
-  const [depositModal, setDepositModal] = useState(null); // null | { memberId, month, amount }
+  const [sendingNoti, setSendingNoti] = useState(null);
+  const [memberModal, setMemberModal] = useState(null);
+  const [depositModal, setDepositModal] = useState(null);
 
   const handleSaveMember = async (e) => {
     e.preventDefault();
     try {
       if (memberModal.id) {
         await updateMember(memberModal.id, memberModal.name);
-        showToast('멤버가 수정되었습니다.');
+        showToast(t('memberEdited'));
       } else {
         await addMember(memberModal.name, memberModal.balance || 0);
-        showToast('멤버가 추가되었습니다!');
+        showToast(t('memberAdded'));
       }
       setMemberModal(null);
     } catch (e) {
-      showToast('오류: ' + (e.message || '저장 실패'));
+      showToast(t('common:error', { message: e.message || t('common:saveFailed') }));
     }
   };
 
   const handleDeleteMember = async (m) => {
-    if (confirm(`'${m.name}' 멤버를 삭제하시겠습니까?\n관련된 모든 주문과 입금 내역도 삭제됩니다.`)) {
+    if (confirm(t('confirmDeleteMember', { name: m.name }))) {
       try {
         await deleteMember(m.id);
-        showToast('멤버가 삭제되었습니다.');
+        showToast(t('memberDeleted'));
       } catch (e) {
-        showToast('오류: ' + (e.message || '삭제 실패'));
+        showToast(t('common:error', { message: e.message || t('common:deleteFailed') }));
       }
     }
   };
@@ -47,19 +49,19 @@ export default function Members({ showToast }) {
     try {
       await addDeposit(depositModal.memberId, depositModal.month, depositModal.amount);
       setDepositModal(null);
-      showToast('충전이 완료되었습니다!');
+      showToast(t('depositComplete'));
     } catch (e) {
-      showToast('오류: ' + (e.message || '충전 실패'));
+      showToast(t('common:error', { message: e.message || t('depositFailed') }));
     }
   };
 
   const handleDeleteDeposit = async (id) => {
-    if (confirm('이 충전 내역을 삭제하시겠습니까?')) {
+    if (confirm(t('confirmDeleteDeposit'))) {
       try {
         await deleteDeposit(id);
-        showToast('충전 내역이 삭제되었습니다.');
+        showToast(t('depositDeleted'));
       } catch (e) {
-        showToast('오류: ' + (e.message || '삭제 실패'));
+        showToast(t('common:error', { message: e.message || t('common:deleteFailed') }));
       }
     }
   };
@@ -78,14 +80,14 @@ export default function Members({ showToast }) {
       });
       const result = await res.json();
       if (result.matched === 0) {
-        showToast(`'${member.name}'과 일치하는 유저를 찾지 못했습니다. 설정 > 역할 관리에서 유저 이름을 확인해주세요.`);
+        showToast(t('userNotFound', { name: member.name }));
       } else if (result.sent === 0) {
-        showToast('매칭된 유저가 알림을 등록하지 않았습니다.');
+        showToast(t('userNoNotification'));
       } else {
-        showToast(`${member.name}님에게 충전 요청 알림을 보냈습니다.`);
+        showToast(t('notificationSent', { name: member.name }));
       }
     } catch (e) {
-      showToast('알림 발송에 실패했습니다.');
+      showToast(t('notificationFailed'));
     } finally {
       setSendingNoti(null);
     }
@@ -97,10 +99,10 @@ export default function Members({ showToast }) {
   return (
     <>
       <div className="page-header">
-        <h1>멤버 관리</h1>
+        <h1>{t('title')}</h1>
         {canDo(userRole, 'addMember') && (
           <button className="btn btn-primary" onClick={() => setMemberModal({ name: '', balance: 0 })}>
-            + 멤버 추가
+            {t('addMember')}
           </button>
         )}
       </div>
@@ -115,13 +117,13 @@ export default function Members({ showToast }) {
                 <div className="member-name">{m.name}</div>
                 {canDo(userRole, 'updateMember') && (
                   <div className="member-actions">
-                    <button className="btn btn-sm" onClick={() => setMemberModal({ id: m.id, name: m.name, balance: m.initial_balance || 0 })}>수정</button>
-                    <button className="btn btn-sm text-danger" onClick={() => handleDeleteMember(m)}>삭제</button>
+                    <button className="btn btn-sm" onClick={() => setMemberModal({ id: m.id, name: m.name, balance: m.initial_balance || 0 })}>{t('common:edit')}</button>
+                    <button className="btn btn-sm text-danger" onClick={() => handleDeleteMember(m)}>{t('common:delete')}</button>
                   </div>
                 )}
               </div>
               <div>
-                <div className="member-balance-label">현재 잔액</div>
+                <div className="member-balance-label">{t('currentBalance')}</div>
                 <div className="member-balance-row">
                   <div className={`member-balance-value ${bal < 0 ? 'negative' : ''}`}>{formatMoney(bal)}</div>
                   {bal <= 0 && canDo(userRole, 'sendMemberNotification') && (
@@ -129,7 +131,7 @@ export default function Members({ showToast }) {
                       className="member-noti-btn"
                       onClick={() => handleSendChargeNotification(m, bal)}
                       disabled={sendingNoti === m.id}
-                      title="충전 요청 알림 보내기"
+                      title={t('sendChargeNotification')}
                     >
                       {sendingNoti === m.id ? '...' : '\uD83D\uDD14'}
                     </button>
@@ -137,10 +139,10 @@ export default function Members({ showToast }) {
                 </div>
               </div>
               <div className="member-deposits">
-                <strong>충전 내역</strong>
+                <strong>{t('depositHistory')}</strong>
                 <div>
                   {deps.length === 0 ? (
-                    <div style={{ color: 'var(--text-secondary)', fontSize: 12 }}>없음</div>
+                    <div style={{ color: 'var(--text-secondary)', fontSize: 12 }}>{t('common:none')}</div>
                   ) : (
                     deps.map(d => (
                       <div key={d.id} className="deposit-item">
@@ -156,7 +158,7 @@ export default function Members({ showToast }) {
                     className="btn btn-sm btn-primary member-deposit-btn"
                     onClick={() => setDepositModal({ memberId: m.id, month: defaultMonth, amount: '' })}
                   >
-                    + 충전
+                    {t('addDeposit')}
                   </button>
                 )}
               </div>
@@ -165,27 +167,26 @@ export default function Members({ showToast }) {
         })}
       </div>
 
-      {/* Member Modal */}
       <Modal
         open={!!memberModal}
         onClose={() => setMemberModal(null)}
-        title={memberModal?.id ? '멤버 수정' : '멤버 추가'}
+        title={memberModal?.id ? t('editMember') : t('addMemberTitle')}
       >
         {memberModal && (
           <form onSubmit={handleSaveMember}>
             <div className="form-group">
-              <label>이름</label>
+              <label>{t('nameLabel')}</label>
               <input
                 type="text"
                 value={memberModal.name}
                 onChange={e => setMemberModal({ ...memberModal, name: e.target.value })}
-                placeholder="예: 김범석(Negan)"
+                placeholder={t('namePlaceholder')}
                 required
               />
             </div>
             {!memberModal.id && (
               <div className="form-group">
-                <label>초기 잔액 (원)</label>
+                <label>{t('initialBalance')}</label>
                 <input
                   type="number"
                   value={memberModal.balance}
@@ -195,23 +196,22 @@ export default function Members({ showToast }) {
               </div>
             )}
             <div className="form-actions">
-              <button type="button" className="btn" onClick={() => setMemberModal(null)}>취소</button>
-              <button type="submit" className="btn btn-primary">저장</button>
+              <button type="button" className="btn" onClick={() => setMemberModal(null)}>{t('common:cancel')}</button>
+              <button type="submit" className="btn btn-primary">{t('common:save')}</button>
             </div>
           </form>
         )}
       </Modal>
 
-      {/* Deposit Modal */}
       <Modal
         open={!!depositModal}
         onClose={() => setDepositModal(null)}
-        title="충전금 입금"
+        title={t('depositTitle')}
       >
         {depositModal && (
           <form onSubmit={handleSaveDeposit}>
             <div className="form-group">
-              <label>멤버</label>
+              <label>{t('memberLabel')}</label>
               <select
                 value={depositModal.memberId}
                 onChange={e => setDepositModal({ ...depositModal, memberId: Number(e.target.value) })}
@@ -220,7 +220,7 @@ export default function Members({ showToast }) {
               </select>
             </div>
             <div className="form-group">
-              <label>충전 월</label>
+              <label>{t('depositMonth')}</label>
               <input
                 type="month"
                 value={depositModal.month}
@@ -229,19 +229,19 @@ export default function Members({ showToast }) {
               />
             </div>
             <div className="form-group">
-              <label>금액 (원)</label>
+              <label>{t('amount')}</label>
               <input
                 type="number"
                 value={depositModal.amount}
                 onChange={e => setDepositModal({ ...depositModal, amount: e.target.value })}
-                placeholder="예: 50000"
+                placeholder={t('amountPlaceholder')}
                 step="1000"
                 required
               />
             </div>
             <div className="form-actions">
-              <button type="button" className="btn" onClick={() => setDepositModal(null)}>취소</button>
-              <button type="submit" className="btn btn-primary">입금</button>
+              <button type="button" className="btn" onClick={() => setDepositModal(null)}>{t('common:cancel')}</button>
+              <button type="submit" className="btn btn-primary">{t('deposit')}</button>
             </div>
           </form>
         )}

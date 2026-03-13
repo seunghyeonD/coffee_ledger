@@ -1,9 +1,11 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/lib/auth';
 
 export default function ResetPasswordPage() {
+  const { t } = useTranslation(['auth', 'common']);
   const { updatePassword } = useAuth();
   const [password, setPassword] = useState('');
   const [confirmPw, setConfirmPw] = useState('');
@@ -14,23 +16,15 @@ export default function ResetPasswordPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-
-    if (password.length < 6) {
-      setError('비밀번호는 6자 이상이어야 합니다.');
-      return;
-    }
-
-    if (password !== confirmPw) {
-      setError('비밀번호가 일치하지 않습니다.');
-      return;
-    }
+    if (password.length < 6) { setError(t('passwordMinLength')); return; }
+    if (password !== confirmPw) { setError(t('passwordMismatch')); return; }
 
     setLoading(true);
     try {
       await updatePassword(password);
       setDone(true);
     } catch (err) {
-      setError(err.message || '비밀번호 변경에 실패했습니다.');
+      setError(err.message || t('passwordChangeFailed'));
     } finally {
       setLoading(false);
     }
@@ -40,10 +34,10 @@ export default function ResetPasswordPage() {
     return (
       <div className="auth-page">
         <div className="auth-card">
-          <div className="auth-logo">{'\u2615'} 커피 대장부</div>
+          <div className="auth-logo">{'\u2615'} {t('common:appName')}</div>
           <div className="auth-success">
-            <h3>비밀번호가 변경되었습니다</h3>
-            <p>새 비밀번호로 서비스를 이용할 수 있습니다.</p>
+            <h3>{t('passwordChanged')}</h3>
+            <p>{t('passwordChangedDesc')}</p>
           </div>
         </div>
       </div>
@@ -53,39 +47,24 @@ export default function ResetPasswordPage() {
   return (
     <div className="auth-page">
       <div className="auth-card">
-        <div className="auth-logo">{'\u2615'} 커피 대장부</div>
-        <h2 className="auth-title">새 비밀번호 설정</h2>
-        <p className="auth-subtitle">
-          사용할 새 비밀번호를 입력해주세요.
-        </p>
+        <div className="auth-logo">{'\u2615'} {t('common:appName')}</div>
+        <h2 className="auth-title">{t('newPasswordTitle')}</h2>
+        <p className="auth-subtitle">{t('newPasswordDesc')}</p>
 
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
-            <label>새 비밀번호</label>
-            <input
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              placeholder="6자 이상"
-              required
-              autoFocus
-            />
+            <label>{t('newPassword')}</label>
+            <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder={t('passwordPlaceholder')} required autoFocus />
           </div>
           <div className="form-group">
-            <label>비밀번호 확인</label>
-            <input
-              type="password"
-              value={confirmPw}
-              onChange={e => setConfirmPw(e.target.value)}
-              placeholder="비밀번호 재입력"
-              required
-            />
+            <label>{t('passwordConfirm')}</label>
+            <input type="password" value={confirmPw} onChange={e => setConfirmPw(e.target.value)} placeholder={t('passwordConfirmPlaceholder')} required />
           </div>
 
           {error && <p className="auth-error">{error}</p>}
 
           <button type="submit" className="btn btn-primary auth-btn" disabled={loading}>
-            {loading ? '변경중...' : '비밀번호 변경'}
+            {loading ? t('changingPassword') : t('changePassword')}
           </button>
         </form>
       </div>

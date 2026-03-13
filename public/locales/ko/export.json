@@ -1,0 +1,11 @@
+{
+  "accountBalance": "계좌 잔액",
+  "balance": "잔액",
+  "bankAccount": "우리은행 1002963587753",
+  "deposit": "충전금",
+  "depositAccount": "입금계좌",
+  "downloaded": "엑셀 파일이 다운로드됩니다!",
+  "fileName": "커피대장부_{{date}}.xlsx",
+  "overview": "총괄",
+  "week": "{{n}}주차"
+}

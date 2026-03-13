@@ -1,0 +1,11 @@
+{
+  "accountBalance": "Account Balance",
+  "balance": "Balance",
+  "bankAccount": "Woori Bank 1002963587753",
+  "deposit": "Deposit",
+  "depositAccount": "Deposit Account",
+  "downloaded": "Excel file downloaded!",
+  "fileName": "CoffeeLedger_{{date}}.xlsx",
+  "overview": "Overview",
+  "week": "Week {{n}}"
+}

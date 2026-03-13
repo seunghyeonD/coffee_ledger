@@ -1,0 +1,13 @@
+{
+  "allMembers": "전체 멤버",
+  "amount": "금액",
+  "confirmDelete": "이 주문을 삭제하시겠습니까?",
+  "date": "날짜",
+  "member": "멤버",
+  "menu": "메뉴",
+  "noOrders": "주문 내역이 없습니다.",
+  "note": "비고",
+  "orderDeleted": "주문이 삭제되었습니다.",
+  "shop": "업체",
+  "title": "주문 내역"
+}

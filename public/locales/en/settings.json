@@ -1,0 +1,73 @@
+{
+  "broadcast": {
+    "bodyLabel": "Notification Body",
+    "bodyPlaceholder": "e.g. Please deposit this month's coffee fee.",
+    "description": "Send a manual notification to all company members.",
+    "send": "Send Notification",
+    "sendFailed": "Failed to send notification.",
+    "sending": "Sending...",
+    "sent": "Notification sent to {{count}} members.",
+    "titleLabel": "Notification Title",
+    "titlePlaceholder": "e.g. Monthly deposit reminder"
+  },
+  "companyInfo": {
+    "companyName": "Company Name",
+    "inviteCode": "Invite Code",
+    "inviteCodeDesc": "Share the invite code so others can join the company."
+  },
+  "language": {
+    "description": "Choose the language for the service.",
+    "en": "English",
+    "ko": "한국어",
+    "title": "Language"
+  },
+  "notification": {
+    "balanceDisabled": "Low balance alerts disabled.",
+    "balanceEnabled": "Low balance alerts enabled.",
+    "balanceNotification": "Low Balance Alert",
+    "balanceNotificationDescAdmin": "Get admin alerts when a member's balance falls below the threshold.",
+    "balanceNotificationDescUser": "Get charge request alerts when your balance falls below the threshold.",
+    "balanceThreshold": "Balance Threshold",
+    "belowWon": "or below",
+    "blocked": "Notification permission is blocked. Please enable it in browser settings.",
+    "disabled": "Notifications disabled.",
+    "enabled": "Notifications enabled.",
+    "orderDisabled": "Order notifications disabled.",
+    "orderEnabled": "Order notifications enabled.",
+    "orderNotification": "Order Notifications",
+    "orderNotificationDesc": "Get notified when a new order is placed.",
+    "permissionDenied": "Notification permission denied. Please enable it in browser settings.",
+    "pushDesc": "Receive push notifications for orders and low balances.",
+    "pushNotification": "Push Notifications",
+    "title": "Notification Settings",
+    "unsupported": "This browser does not support push notifications."
+  },
+  "report": {
+    "description": "Download current data as an Excel file.",
+    "exportExcel": "Export to Excel"
+  },
+  "roles": {
+    "confirmRemoveUser": "Remove '{{email}}' from this company?\nNotification settings for this user will also be deleted.",
+    "description": "Manage roles and names of company members.",
+    "loadFailed": "Failed to load member list.",
+    "loading": "Loading...",
+    "me": "(me)",
+    "nameChangeFailed": "Failed to change name",
+    "nameChanged": "Name changed.",
+    "namePlaceholder": "Enter name",
+    "noName": "(No name)",
+    "removeFromCompany": "Remove from company",
+    "roleChangeFailed": "Failed to change role",
+    "roleChanged": "Role changed.",
+    "userRemoveFailed": "Failed to remove user",
+    "userRemoved": "User removed."
+  },
+  "tabs": {
+    "account": "Account",
+    "broadcast": "Broadcast",
+    "company": "Company Info",
+    "notification": "Notifications",
+    "report": "Reports",
+    "roles": "Role Management"
+  }
+}

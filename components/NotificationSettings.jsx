@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/lib/auth';
 import { useStore } from '@/lib/store';
 import {
@@ -12,6 +13,7 @@ import {
 } from '@/lib/fcm';
 
 export default function NotificationSettings({ showToast, embedded = false }) {
+  const { t } = useTranslation('settings');
   const { user, userRole } = useAuth();
   const { companyId } = useStore();
   const isAdmin = userRole === 'master' || userRole === 'admin';
@@ -31,7 +33,6 @@ export default function NotificationSettings({ showToast, embedded = false }) {
     if (!user || !companyId) return;
     let cancelled = false;
 
-    // fcm_tokens.enabled로 알림 토글 상태 결정
     Promise.all([
       getFCMTokenStatus(user.id, companyId),
       getNotificationPreferences(user.id, companyId),
@@ -50,21 +51,19 @@ export default function NotificationSettings({ showToast, embedded = false }) {
 
   const handleToggleNotifications = async () => {
     if (!enabled) {
-      // 알림 활성화
       const token = await requestNotificationPermission(user.id, companyId);
       if (!token) {
-        showToast('알림 권한이 거부되었습니다. 브라우저 설정에서 허용해주세요.');
+        showToast(t('notification.permissionDenied'));
         return;
       }
       setEnabled(true);
       setPermissionState('granted');
       await savePreferences({ order_registered_enabled: true, low_balance_enabled: true, low_balance_threshold: threshold });
-      showToast('알림이 활성화되었습니다.');
+      showToast(t('notification.enabled'));
     } else {
-      // 알림 비활성화 (토큰 유지, enabled=false)
       await disableFCMToken(user.id, companyId);
       setEnabled(false);
-      showToast('알림이 비활성화되었습니다.');
+      showToast(t('notification.disabled'));
     }
   };
 
@@ -85,14 +84,14 @@ export default function NotificationSettings({ showToast, embedded = false }) {
     const newVal = !orderEnabled;
     setOrderEnabled(newVal);
     await savePreferences({ order_registered_enabled: newVal });
-    showToast(newVal ? '주문 알림이 켜졌습니다.' : '주문 알림이 꺼졌습니다.');
+    showToast(newVal ? t('notification.orderEnabled') : t('notification.orderDisabled'));
   };
 
   const handleLowBalanceToggle = async () => {
     const newVal = !lowBalanceEnabled;
     setLowBalanceEnabled(newVal);
     await savePreferences({ low_balance_enabled: newVal });
-    showToast(newVal ? '잔액 부족 알림이 켜졌습니다.' : '잔액 부족 알림이 꺼졌습니다.');
+    showToast(newVal ? t('notification.balanceEnabled') : t('notification.balanceDisabled'));
   };
 
   const handleThresholdChange = async (e) => {
@@ -111,21 +110,21 @@ export default function NotificationSettings({ showToast, embedded = false }) {
     <>
       {notSupported && (
         <div className="notification-warning">
-          이 브라우저는 푸시 알림을 지원하지 않습니다.
+          {t('notification.unsupported')}
         </div>
       )}
 
       {denied && (
         <div className="notification-warning">
-          알림 권한이 차단되어 있습니다. 브라우저 설정에서 알림을 허용해주세요.
+          {t('notification.blocked')}
         </div>
       )}
 
       <div className="notification-card">
         <div className="notification-row">
           <div>
-            <strong>푸시 알림</strong>
-            <p className="notification-desc">주문 등록, 잔액 부족 시 푸시 알림을 받습니다.</p>
+            <strong>{t('notification.pushNotification')}</strong>
+            <p className="notification-desc">{t('notification.pushDesc')}</p>
           </div>
           <button
             className={`toggle-btn ${enabled ? 'active' : ''}`}
@@ -142,8 +141,8 @@ export default function NotificationSettings({ showToast, embedded = false }) {
 
             <div className="notification-row">
               <div>
-                <strong>주문 등록 알림</strong>
-                <p className="notification-desc">새로운 주문이 등록되면 알림을 받습니다.</p>
+                <strong>{t('notification.orderNotification')}</strong>
+                <p className="notification-desc">{t('notification.orderNotificationDesc')}</p>
               </div>
               <button
                 className={`toggle-btn ${orderEnabled ? 'active' : ''}`}
@@ -155,11 +154,11 @@ export default function NotificationSettings({ showToast, embedded = false }) {
 
             <div className="notification-row">
               <div>
-                <strong>잔액 부족 알림</strong>
+                <strong>{t('notification.balanceNotification')}</strong>
                 <p className="notification-desc">
                   {isAdmin
-                    ? '멤버 잔액이 설정 금액 이하일 때 관리자 알림을 받습니다.'
-                    : '내 잔액이 설정 금액 이하일 때 충전 요청 알림을 받습니다.'}
+                    ? t('notification.balanceNotificationDescAdmin')
+                    : t('notification.balanceNotificationDescUser')}
                 </p>
               </div>
               <button
@@ -173,7 +172,7 @@ export default function NotificationSettings({ showToast, embedded = false }) {
             {lowBalanceEnabled && (
               <div className="notification-row threshold-row">
                 <label>
-                  잔액 임계값
+                  {t('notification.balanceThreshold')}
                   <input
                     type="number"
                     className="threshold-input"
@@ -183,7 +182,7 @@ export default function NotificationSettings({ showToast, embedded = false }) {
                     step={1000}
                     min={0}
                   />
-                  <span className="threshold-unit">원 이하</span>
+                  <span className="threshold-unit">{t('notification.belowWon')}</span>
                 </label>
               </div>
             )}
@@ -197,7 +196,7 @@ export default function NotificationSettings({ showToast, embedded = false }) {
 
   return (
     <div className="page-section">
-      <h2 className="page-title">알림 설정</h2>
+      <h2 className="page-title">{t('notification.title')}</h2>
       {content}
     </div>
   );

@@ -1,0 +1,73 @@
+{
+  "broadcast": {
+    "bodyLabel": "알림 내용",
+    "bodyPlaceholder": "예: 3월 커피비를 충전해주세요.",
+    "description": "기업의 모든 멤버에게 수동으로 알림을 발송합니다.",
+    "send": "알림 발송",
+    "sendFailed": "알림 발송에 실패했습니다.",
+    "sending": "발송중...",
+    "sent": "알림이 {{count}}명에게 발송되었습니다.",
+    "titleLabel": "알림 제목",
+    "titlePlaceholder": "예: 이번 달 충전 안내"
+  },
+  "companyInfo": {
+    "companyName": "기업 이름",
+    "inviteCode": "초대 코드",
+    "inviteCodeDesc": "초대 코드를 공유하면 다른 멤버가 기업에 참여할 수 있습니다."
+  },
+  "language": {
+    "description": "서비스에서 사용할 언어를 선택합니다.",
+    "en": "English",
+    "ko": "한국어",
+    "title": "언어 설정"
+  },
+  "notification": {
+    "balanceDisabled": "잔액 부족 알림이 꺼졌습니다.",
+    "balanceEnabled": "잔액 부족 알림이 켜졌습니다.",
+    "balanceNotification": "잔액 부족 알림",
+    "balanceNotificationDescAdmin": "멤버 잔액이 설정 금액 이하일 때 관리자 알림을 받습니다.",
+    "balanceNotificationDescUser": "내 잔액이 설정 금액 이하일 때 충전 요청 알림을 받습니다.",
+    "balanceThreshold": "잔액 임계값",
+    "belowWon": "원 이하",
+    "blocked": "알림 권한이 차단되어 있습니다. 브라우저 설정에서 알림을 허용해주세요.",
+    "disabled": "알림이 비활성화되었습니다.",
+    "enabled": "알림이 활성화되었습니다.",
+    "orderDisabled": "주문 알림이 꺼졌습니다.",
+    "orderEnabled": "주문 알림이 켜졌습니다.",
+    "orderNotification": "주문 등록 알림",
+    "orderNotificationDesc": "새로운 주문이 등록되면 알림을 받습니다.",
+    "permissionDenied": "알림 권한이 거부되었습니다. 브라우저 설정에서 허용해주세요.",
+    "pushDesc": "주문 등록, 잔액 부족 시 푸시 알림을 받습니다.",
+    "pushNotification": "푸시 알림",
+    "title": "알림 설정",
+    "unsupported": "이 브라우저는 푸시 알림을 지원하지 않습니다."
+  },
+  "report": {
+    "description": "현재 데이터를 엑셀 파일로 다운로드합니다.",
+    "exportExcel": "엑셀 내보내기"
+  },
+  "roles": {
+    "confirmRemoveUser": "{{email}}'을(를) 이 기업에서 제거하시겠습니까?\n해당 유저의 알림 설정도 함께 삭제됩니다.",
+    "description": "기업 멤버들의 역할과 이름을 관리합니다.",
+    "loadFailed": "멤버 목록을 불러오지 못했습니다.",
+    "loading": "불러오는 중...",
+    "me": "(나)",
+    "nameChangeFailed": "이름 변경 실패",
+    "nameChanged": "이름이 변경되었습니다.",
+    "namePlaceholder": "이름 입력",
+    "noName": "(이름 없음)",
+    "removeFromCompany": "기업에서 제거",
+    "roleChangeFailed": "역할 변경 실패",
+    "roleChanged": "역할이 변경되었습니다.",
+    "userRemoveFailed": "유저 제거 실패",
+    "userRemoved": "유저가 제거되었습니다."
+  },
+  "tabs": {
+    "account": "계정",
+    "broadcast": "알림 발송",
+    "company": "기업 정보",
+    "notification": "알림",
+    "report": "보고서",
+    "roles": "역할 관리"
+  }
+}

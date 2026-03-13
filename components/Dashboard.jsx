@@ -1,11 +1,13 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useStore } from '@/lib/store';
 import { formatMoney, formatDate } from '@/lib/utils';
 import OrderModal from '@/components/modals/OrderModal';
 
 export default function Dashboard({ showToast }) {
+  const { t } = useTranslation(['dashboard', 'common']);
   const { members, getMemberBalance, getOrdersByMonth, getTotalBalance } = useStore();
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
@@ -60,21 +62,24 @@ export default function Dashboard({ showToast }) {
     return cells;
   }, [year, month, monthOrders, ym]);
 
+  const weekdays = t('common:weekdays', { returnObjects: true });
+  const weekends = t('common:weekends', { returnObjects: true });
+
   return (
     <>
       <div className="page-header">
-        <h1>대시보드</h1>
+        <h1>{t('dashboard:title')}</h1>
         <div className="account-info">
-          <span className="account-label">입금계좌</span>
+          <span className="account-label">{t('dashboard:depositAccount')}</span>
           <button
             className="account-copy-btn"
             onClick={() => {
               navigator.clipboard.writeText('1002963587753').then(() => {
-                showToast('계좌번호가 복사되었습니다');
+                showToast(t('dashboard:accountCopied'));
               });
             }}
           >
-            우리은행 1002963587753
+            {t('dashboard:bankAccount')}
             <span className="copy-icon">{'\u{1F4CB}'}</span>
           </button>
         </div>
@@ -82,19 +87,19 @@ export default function Dashboard({ showToast }) {
 
       <div className="balance-cards">
         <div className="card card-total">
-          <div className="card-label">계좌 잔액</div>
+          <div className="card-label">{t('dashboard:accountBalance')}</div>
           <div className="card-value">{formatMoney(getTotalBalance())}</div>
         </div>
         <div className="card card-members">
-          <div className="card-label">총 멤버</div>
+          <div className="card-label">{t('dashboard:totalMembers')}</div>
           <div className="card-value">{members.length}</div>
         </div>
         <div className="card card-orders">
-          <div className="card-label">이번 달 주문</div>
-          <div className="card-value">{monthOrders.length}건</div>
+          <div className="card-label">{t('dashboard:monthlyOrders')}</div>
+          <div className="card-value">{t('common:count', { count: monthOrders.length })}</div>
         </div>
         <div className="card card-spent">
-          <div className="card-label">이번 달 지출</div>
+          <div className="card-label">{t('dashboard:monthlyExpense')}</div>
           <div className="card-value">{formatMoney(monthOrders.reduce((s, o) => s + o.price, 0))}</div>
         </div>
       </div>
@@ -102,15 +107,15 @@ export default function Dashboard({ showToast }) {
       <div className="calendar-section">
         <div className="calendar-header">
           <button className="btn-icon" onClick={goPrev}>{'\u276E'}</button>
-          <h2>{year}년 {month + 1}월</h2>
+          <h2>{t('common:yearMonth', { year, month: month + 1 })}</h2>
           <button className="btn-icon" onClick={goNext}>{'\u276F'}</button>
-          <button className="btn btn-primary" onClick={goToday}>오늘</button>
+          <button className="btn btn-primary" onClick={goToday}>{t('common:today')}</button>
         </div>
         <div className="calendar-grid">
-          {['월','화','수','목','금'].map(d => (
+          {weekdays.map(d => (
             <div key={d} className="calendar-day-header">{d}</div>
           ))}
-          {['토','일'].map(d => (
+          {weekends.map(d => (
             <div key={d} className="calendar-day-header weekend">{d}</div>
           ))}
           {calendarCells.map((cell, i) => (
@@ -122,7 +127,7 @@ export default function Dashboard({ showToast }) {
               <div className="cell-date">{cell.day}</div>
               {cell.orders?.length > 0 && (
                 <>
-                  <span className="cell-order-count">{cell.orders.length}건</span>
+                  <span className="cell-order-count">{t('common:count', { count: cell.orders.length })}</span>
                   <div className="cell-total">
                     {formatMoney(cell.orders.reduce((s, o) => s + o.price, 0))}
                   </div>
@@ -134,7 +139,7 @@ export default function Dashboard({ showToast }) {
       </div>
 
       <div className="quick-balances">
-        <h3>멤버 잔액 현황</h3>
+        <h3>{t('dashboard:memberBalance')}</h3>
         <div className="balance-list">
           {members.map(m => {
             const bal = getMemberBalance(m.id);

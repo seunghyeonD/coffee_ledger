@@ -1,20 +1,22 @@
 'use client';
 
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/lib/auth';
 import { useStore } from '@/lib/store';
 
-const NAV_ITEMS = [
-  { key: 'dashboard', icon: '\u{1F4C5}', label: '대시보드', mobileLabel: '홈' },
-  { key: 'members', icon: '\u{1F465}', label: '멤버 관리', mobileLabel: '멤버' },
-  { key: 'shops', icon: '\u2615', label: '메뉴 관리', mobileLabel: '메뉴' },
-  { key: 'history', icon: '\u{1F4CB}', label: '주문 내역', mobileLabel: '내역' },
-  { key: 'summary', icon: '\u{1F4CA}', label: '월별 요약', mobileLabel: '요약' },
-  { key: 'settings', icon: '\u2699\uFE0F', label: '설정', mobileLabel: '설정' },
-];
-
 export default function Sidebar({ page, setPage, showToast }) {
+  const { t } = useTranslation(['sidebar', 'common', 'company']);
   const { company, signOut, clearCompany } = useAuth();
   const store = useStore();
+
+  const NAV_ITEMS = [
+    { key: 'dashboard', icon: '\u{1F4C5}', label: t('sidebar:dashboard'), mobileLabel: t('sidebar:dashboardShort') },
+    { key: 'members', icon: '\u{1F465}', label: t('sidebar:members'), mobileLabel: t('sidebar:membersShort') },
+    { key: 'shops', icon: '\u2615', label: t('sidebar:shops'), mobileLabel: t('sidebar:shopsShort') },
+    { key: 'history', icon: '\u{1F4CB}', label: t('sidebar:history'), mobileLabel: t('sidebar:historyShort') },
+    { key: 'summary', icon: '\u{1F4CA}', label: t('sidebar:summary'), mobileLabel: t('sidebar:summaryShort') },
+    { key: 'settings', icon: '\u2699\uFE0F', label: t('sidebar:settings'), mobileLabel: t('sidebar:settings') },
+  ];
 
   const handleExport = () => {
     import('@/lib/exportExcel').then(mod => {
@@ -30,13 +32,13 @@ export default function Sidebar({ page, setPage, showToast }) {
     <nav className="sidebar">
       <div className="sidebar-logo">
         <span>{'\u2615'}</span>
-        <span className="logo-text">커피 대장부</span>
+        <span className="logo-text">{t('common:appName')}</span>
       </div>
 
       {company && (
         <div className="sidebar-company">
           <span className="company-name">{company.name} <span className="company-code">- {company.invite_code}</span></span>
-          <button className="btn-switch-company" onClick={clearCompany} title="기업 전환">
+          <button className="btn-switch-company" onClick={clearCompany} title={t('company:switchCompany')}>
             {'\u{1F504}'}
           </button>
         </div>
@@ -58,10 +60,10 @@ export default function Sidebar({ page, setPage, showToast }) {
       </ul>
       <div className="sidebar-footer">
         <button className="btn-export" onClick={handleExport}>
-          {'\u{1F4E5}'} 엑셀 내보내기
+          {'\u{1F4E5}'} {t('sidebar:exportExcel')}
         </button>
         <button className="btn-logout" onClick={handleSignOut}>
-          {'\u{1F6AA}'} 로그아웃
+          {'\u{1F6AA}'} {t('common:logout')}
         </button>
       </div>
     </nav>

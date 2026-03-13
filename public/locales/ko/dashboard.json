@@ -1,0 +1,11 @@
+{
+  "accountBalance": "계좌 잔액",
+  "accountCopied": "계좌번호가 복사되었습니다",
+  "bankAccount": "우리은행 1002963587753",
+  "depositAccount": "입금계좌",
+  "memberBalance": "멤버 잔액 현황",
+  "monthlyExpense": "이번 달 지출",
+  "monthlyOrders": "이번 달 주문",
+  "title": "대시보드",
+  "totalMembers": "총 멤버"
+}

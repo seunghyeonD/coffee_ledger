@@ -1,12 +1,14 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/lib/auth';
 import { ROLE_LABELS } from '@/lib/roles';
 
 export default function CompanySelectPage() {
+  const { t } = useTranslation(['company', 'common']);
   const { userCompanies, selectCompany, createCompany, joinCompany, signOut } = useAuth();
-  const [mode, setMode] = useState(null); // null | 'create' | 'join'
+  const [mode, setMode] = useState(null);
   const [name, setName] = useState('');
   const [inviteCode, setInviteCode] = useState('');
   const [loading, setLoading] = useState(false);
@@ -20,7 +22,7 @@ export default function CompanySelectPage() {
     try {
       await createCompany(name.trim());
     } catch (err) {
-      setError(err.message || '기업 생성에 실패했습니다.');
+      setError(err.message || t('createFailed'));
     } finally {
       setLoading(false);
     }
@@ -34,7 +36,7 @@ export default function CompanySelectPage() {
     try {
       await joinCompany(inviteCode.trim());
     } catch (err) {
-      setError(err.message || '기업 참여에 실패했습니다.');
+      setError(err.message || t('joinFailed'));
     } finally {
       setLoading(false);
     }
@@ -50,22 +52,16 @@ export default function CompanySelectPage() {
   return (
     <div className="auth-page">
       <div className="auth-card company-select-card">
-        <div className="auth-logo">{'\u2615'} 커피 대장부</div>
-        <h2 className="auth-title">기업 선택</h2>
-        <p className="auth-subtitle">관리할 기업을 선택하거나 새로 만드세요.</p>
+        <div className="auth-logo">{'\u2615'} {t('common:appName')}</div>
+        <h2 className="auth-title">{t('selectCompany')}</h2>
+        <p className="auth-subtitle">{t('selectCompanyDesc')}</p>
 
         {userCompanies.length > 0 && (
           <div className="company-list">
             {userCompanies.map(c => (
-              <button
-                key={c.id}
-                className="company-item"
-                onClick={() => selectCompany(c)}
-              >
+              <button key={c.id} className="company-item" onClick={() => selectCompany(c)}>
                 <div className="company-item-name">{c.name}</div>
-                <div className="company-item-role">
-                  {ROLE_LABELS[c.role] || c.role}
-                </div>
+                <div className="company-item-role">{ROLE_LABELS[c.role] || c.role}</div>
               </button>
             ))}
           </div>
@@ -73,17 +69,11 @@ export default function CompanySelectPage() {
 
         {mode === null && (
           <div className="company-actions">
-            <button
-              className="btn btn-primary auth-btn"
-              onClick={() => setMode('join')}
-            >
-              초대 코드로 참여
+            <button className="btn btn-primary auth-btn" onClick={() => setMode('join')}>
+              {t('joinWithCode')}
             </button>
-            <button
-              className="btn auth-btn"
-              onClick={() => setMode('create')}
-            >
-              + 새 기업 만들기
+            <button className="btn auth-btn" onClick={() => setMode('create')}>
+              {t('createNew')}
             </button>
           </div>
         )}
@@ -91,22 +81,14 @@ export default function CompanySelectPage() {
         {mode === 'join' && (
           <form onSubmit={handleJoin} className="company-create-form">
             <div className="form-group">
-              <label>초대 코드</label>
-              <input
-                type="text"
-                value={inviteCode}
-                onChange={e => setInviteCode(e.target.value)}
-                placeholder="예: ABC123"
-                required
-                autoFocus
-                style={{ textTransform: 'uppercase' }}
-              />
+              <label>{t('inviteCode')}</label>
+              <input type="text" value={inviteCode} onChange={e => setInviteCode(e.target.value)} placeholder={t('inviteCodePlaceholder')} required autoFocus style={{ textTransform: 'uppercase' }} />
             </div>
             {error && <p className="auth-error">{error}</p>}
             <div className="form-actions">
-              <button type="button" className="btn" onClick={resetMode}>취소</button>
+              <button type="button" className="btn" onClick={resetMode}>{t('common:cancel')}</button>
               <button type="submit" className="btn btn-primary" disabled={loading}>
-                {loading ? '참여중...' : '참여하기'}
+                {loading ? t('joining') : t('join')}
               </button>
             </div>
           </form>
@@ -115,28 +97,21 @@ export default function CompanySelectPage() {
         {mode === 'create' && (
           <form onSubmit={handleCreate} className="company-create-form">
             <div className="form-group">
-              <label>기업 이름</label>
-              <input
-                type="text"
-                value={name}
-                onChange={e => setName(e.target.value)}
-                placeholder="예: 우리회사"
-                required
-                autoFocus
-              />
+              <label>{t('companyName')}</label>
+              <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder={t('companyNamePlaceholder')} required autoFocus />
             </div>
             {error && <p className="auth-error">{error}</p>}
             <div className="form-actions">
-              <button type="button" className="btn" onClick={resetMode}>취소</button>
+              <button type="button" className="btn" onClick={resetMode}>{t('common:cancel')}</button>
               <button type="submit" className="btn btn-primary" disabled={loading}>
-                {loading ? '생성중...' : '만들기'}
+                {loading ? t('creating') : t('create')}
               </button>
             </div>
           </form>
         )}
 
         <button className="auth-logout-btn" onClick={signOut}>
-          로그아웃
+          {t('common:logout')}
         </button>
       </div>
     </div>

@@ -1,0 +1,45 @@
+{
+  "appName": "커피 대장부",
+  "cancel": "취소",
+  "checkSupabase": "Supabase 연결을 확인해주세요.",
+  "close": "확인",
+  "count": "{{count}}건",
+  "dayNames": [
+    "일",
+    "월",
+    "화",
+    "수",
+    "목",
+    "금",
+    "토"
+  ],
+  "delete": "삭제",
+  "deleteFailed": "삭제 실패",
+  "edit": "수정",
+  "error": "오류: {{message}}",
+  "loadFailed": "데이터 로드 실패",
+  "loading": "불러오는 중...",
+  "loadingData": "데이터를 불러오는 중...",
+  "logout": "로그아웃",
+  "none": "없음",
+  "preparingCoffee": "커피 준비 중...",
+  "processing": "처리중...",
+  "save": "저장",
+  "saveFailed": "저장 실패",
+  "supabaseError": "Supabase 연결 실패",
+  "today": "오늘",
+  "unknown": "알 수 없음",
+  "weekdays": [
+    "월",
+    "화",
+    "수",
+    "목",
+    "금"
+  ],
+  "weekends": [
+    "토",
+    "일"
+  ],
+  "won": "원",
+  "yearMonth": "{{year}}년 {{month}}월"
+}

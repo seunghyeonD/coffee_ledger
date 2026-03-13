@@ -1,0 +1,23 @@
+{
+  "confirmDeleteOrder": "이 주문을 삭제하시겠습니까?",
+  "customInput": "직접 입력",
+  "customMenu": "기타",
+  "dateFormat": "{{year}}년 {{month}}월 {{day}}일 ({{dayName}})",
+  "enterMenuName": "메뉴명을 입력해주세요:",
+  "enterPrice": "가격을 입력해주세요 (원):",
+  "invalidPrice": "올바른 가격을 입력해주세요",
+  "noSearchResults": "검색 결과가 없습니다.",
+  "noShops": "등록된 업체가 없습니다. 메뉴 관리에서 추가해주세요.",
+  "noTodayOrders": "이 날의 주문이 없습니다.",
+  "orderDeleted": "주문이 삭제되었습니다.",
+  "orderFailed": "주문 등록 실패",
+  "orderRegistered": "주문이 등록되었습니다!",
+  "reselectMenu": "← 메뉴 다시 선택",
+  "reselectShop": "← 업체 다시 선택",
+  "searchMenu": "메뉴 검색...",
+  "step1": "1. 업체 선택",
+  "step2": "2. 메뉴 선택",
+  "step3": "3. 멤버 선택",
+  "title": "주문 등록",
+  "todayOrders": "이 날의 주문"
+}

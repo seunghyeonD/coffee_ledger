@@ -1,0 +1,14 @@
+{
+  "cafesFound": "{{count}}개 카페 발견",
+  "kakaoInitFailed": "카카오맵 초기화 실패. JavaScript 키를 확인해주세요.",
+  "kakaoLoadFailed": "카카오맵 SDK 로드 실패. 키 또는 도메인 설정을 확인해주세요.",
+  "loadingMap": "지도 로딩 중...",
+  "locationPermission": "위치 권한을 허용해주세요.",
+  "locationUnavailable": "위치 정보를 사용할 수 없습니다.",
+  "noCafes": "주변에 카페가 없습니다.",
+  "title": "주변 카페 찾기",
+  "within10km": "10km 이내",
+  "within1km": "1km 이내",
+  "within3km": "3km 이내",
+  "within5km": "5km 이내"
+}

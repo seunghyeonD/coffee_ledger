@@ -1,0 +1,14 @@
+{
+  "dashboard": "대시보드",
+  "dashboardShort": "홈",
+  "exportExcel": "엑셀 내보내기",
+  "history": "주문 내역",
+  "historyShort": "내역",
+  "members": "멤버 관리",
+  "membersShort": "멤버",
+  "settings": "설정",
+  "shops": "메뉴 관리",
+  "shopsShort": "메뉴",
+  "summary": "월별 요약",
+  "summaryShort": "요약"
+}

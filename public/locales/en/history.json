@@ -1,0 +1,13 @@
+{
+  "allMembers": "All Members",
+  "amount": "Amount",
+  "confirmDelete": "Delete this order?",
+  "date": "Date",
+  "member": "Member",
+  "menu": "Menu",
+  "noOrders": "No order history.",
+  "note": "Note",
+  "orderDeleted": "Order deleted.",
+  "shop": "Shop",
+  "title": "Order History"
+}

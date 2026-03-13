@@ -1,0 +1,14 @@
+{
+  "cafesFound": "{{count}} cafes found",
+  "kakaoInitFailed": "KakaoMap initialization failed. Please check your JavaScript key.",
+  "kakaoLoadFailed": "KakaoMap SDK load failed. Please check your key or domain settings.",
+  "loadingMap": "Loading map...",
+  "locationPermission": "Please allow location access.",
+  "locationUnavailable": "Location information unavailable.",
+  "noCafes": "No cafes nearby.",
+  "title": "Find Nearby Cafes",
+  "within10km": "Within 10km",
+  "within1km": "Within 1km",
+  "within3km": "Within 3km",
+  "within5km": "Within 5km"
+}

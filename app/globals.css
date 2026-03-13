@@ -2455,6 +2455,48 @@ body {
   background: #fff5f5;
 }
 
+/* Language Selector */
+.language-selector {
+  display: flex;
+  gap: 12px;
+}
+
+.language-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 24px;
+  border-radius: var(--radius);
+  border: 2px solid var(--border);
+  background: var(--card-bg);
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition);
+  flex: 1;
+}
+
+.language-btn:hover {
+  border-color: var(--primary-light);
+  background: var(--bg);
+}
+
+.language-btn.active {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: #fff;
+}
+
+.language-flag {
+  font-size: 22px;
+}
+
+@media (max-width: 480px) {
+  .language-selector {
+    flex-direction: column;
+  }
+}
+
 /* Company Info */
 .company-info-card {
   background: var(--bg-secondary);

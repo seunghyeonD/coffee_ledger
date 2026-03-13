@@ -1,0 +1,17 @@
+{
+  "companyName": "기업 이름",
+  "companyNamePlaceholder": "예: 우리회사",
+  "create": "만들기",
+  "createFailed": "기업 생성에 실패했습니다.",
+  "createNew": "+ 새 기업 만들기",
+  "creating": "생성중...",
+  "inviteCode": "초대 코드",
+  "inviteCodePlaceholder": "예: ABC123",
+  "join": "참여하기",
+  "joinFailed": "기업 참여에 실패했습니다.",
+  "joinWithCode": "초대 코드로 참여",
+  "joining": "참여중...",
+  "selectCompany": "기업 선택",
+  "selectCompanyDesc": "관리할 기업을 선택하거나 새로 만드세요.",
+  "switchCompany": "기업 전환"
+}

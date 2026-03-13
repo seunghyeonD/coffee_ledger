@@ -1,0 +1,17 @@
+{
+  "companyName": "Company Name",
+  "companyNamePlaceholder": "e.g. My Company",
+  "create": "Create",
+  "createFailed": "Failed to create company.",
+  "createNew": "+ Create new company",
+  "creating": "Creating...",
+  "inviteCode": "Invite Code",
+  "inviteCodePlaceholder": "e.g. ABC123",
+  "join": "Join",
+  "joinFailed": "Failed to join company.",
+  "joinWithCode": "Join with invite code",
+  "joining": "Joining...",
+  "selectCompany": "Select Company",
+  "selectCompanyDesc": "Choose a company to manage or create a new one.",
+  "switchCompany": "Switch Company"
+}

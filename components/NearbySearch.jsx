@@ -1,16 +1,16 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const KAKAO_KEY = process.env.NEXT_PUBLIC_KAKAO_JS_KEY;
 
-function loadKakaoSDK() {
+function loadKakaoSDK(t) {
   return new Promise((resolve, reject) => {
     if (window.kakao && window.kakao.maps && window.kakao.maps.services) {
       resolve();
       return;
     }
-    // 이미 스크립트 태그가 있으면 제거 후 재로드
     const existing = document.querySelector('script[src*="dapi.kakao.com"]');
     if (existing) existing.remove();
 
@@ -20,18 +20,19 @@ function loadKakaoSDK() {
       if (window.kakao && window.kakao.maps) {
         window.kakao.maps.load(() => resolve());
       } else {
-        reject(new Error('카카오맵 초기화 실패. JavaScript 키를 확인해주세요.'));
+        reject(new Error(t('kakaoInitFailed')));
       }
     };
     script.onerror = (e) => {
       console.error('Kakao SDK load error:', e);
-      reject(new Error('카카오맵 SDK 로드 실패. 키 또는 도메인 설정을 확인해주세요.'));
+      reject(new Error(t('kakaoLoadFailed')));
     };
     document.head.appendChild(script);
   });
 }
 
 export default function NearbySearch({ onSelect, onClose }) {
+  const { t } = useTranslation(['nearby', 'shops']);
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
   const markersRef = useRef([]);
@@ -46,7 +47,6 @@ export default function NearbySearch({ onSelect, onClose }) {
     const places = new kakao.maps.services.Places();
     const coords = new kakao.maps.LatLng(lat, lng);
 
-    // 기존 마커 제거
     markersRef.current.forEach(m => m.setMap(null));
     markersRef.current = [];
 
@@ -97,10 +97,10 @@ export default function NearbySearch({ onSelect, onClose }) {
 
     const init = async () => {
       try {
-        await loadKakaoSDK();
+        await loadKakaoSDK(t);
 
         if (!navigator.geolocation) {
-          setError('위치 정보를 사용할 수 없습니다.');
+          setError(t('locationUnavailable'));
           setLoading(false);
           return;
         }
@@ -118,7 +118,6 @@ export default function NearbySearch({ onSelect, onClose }) {
             });
             mapInstance.current = map;
 
-            // 내 위치 마커
             new kakao.maps.Marker({
               map,
               position: coords,
@@ -132,7 +131,7 @@ export default function NearbySearch({ onSelect, onClose }) {
           },
           () => {
             if (!mounted) return;
-            setError('위치 권한을 허용해주세요.');
+            setError(t('locationPermission'));
             setLoading(false);
           },
           { enableHighAccuracy: true, timeout: 10000 }
@@ -146,7 +145,7 @@ export default function NearbySearch({ onSelect, onClose }) {
 
     init();
     return () => { mounted = false; };
-  }, [searchCafes, radius]);
+  }, [searchCafes, radius, t]);
 
   const handleSelect = () => {
     if (selected) {
@@ -163,7 +162,7 @@ export default function NearbySearch({ onSelect, onClose }) {
     <div className="nearby-overlay">
       <div className="nearby-container">
         <div className="nearby-header">
-          <h2>주변 카페 찾기</h2>
+          <h2>{t('title')}</h2>
           <button className="btn-close" onClick={onClose}>{'\u00D7'}</button>
         </div>
 
@@ -173,19 +172,19 @@ export default function NearbySearch({ onSelect, onClose }) {
             value={radius}
             onChange={e => setRadius(Number(e.target.value))}
           >
-            <option value={1000}>1km 이내</option>
-            <option value={3000}>3km 이내</option>
-            <option value={5000}>5km 이내</option>
-            <option value={10000}>10km 이내</option>
+            <option value={1000}>{t('within1km')}</option>
+            <option value={3000}>{t('within3km')}</option>
+            <option value={5000}>{t('within5km')}</option>
+            <option value={10000}>{t('within10km')}</option>
           </select>
-          <span className="nearby-count">{cafes.length}개 카페 발견</span>
+          <span className="nearby-count">{t('cafesFound', { count: cafes.length })}</span>
         </div>
 
         {error && <div className="nearby-error">{error}</div>}
 
         <div className="nearby-body">
           <div className="nearby-map" ref={mapRef}>
-            {loading && <div className="nearby-map-loading">지도 로딩 중...</div>}
+            {loading && <div className="nearby-map-loading">{t('loadingMap')}</div>}
           </div>
 
           <div className="nearby-list">
@@ -212,7 +211,7 @@ export default function NearbySearch({ onSelect, onClose }) {
               </button>
             ))}
             {!loading && cafes.length === 0 && !error && (
-              <div className="empty-state">주변에 카페가 없습니다.</div>
+              <div className="empty-state">{t('noCafes')}</div>
             )}
           </div>
         </div>
@@ -221,7 +220,7 @@ export default function NearbySearch({ onSelect, onClose }) {
           <div className="nearby-footer">
             <div className="nearby-selected-name">{selected.place_name}</div>
             <button className="btn btn-primary" onClick={handleSelect}>
-              이 카페를 업체로 추가
+              {t('shops:addThisCafe')}
             </button>
           </div>
         )}

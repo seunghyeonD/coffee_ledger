@@ -4,6 +4,7 @@ import { Analytics } from '@vercel/analytics/react';
 import './globals.css';
 import { AuthProvider } from '@/lib/auth';
 import { StoreProvider } from '@/lib/store';
+import I18nProvider from '@/components/I18nProvider';
 
 const notoSansKR = Noto_Sans_KR({
   subsets: ['latin'],
@@ -64,11 +65,13 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body className={notoSansKR.className}>
-        <AuthProvider>
-          <StoreProvider>
-            {children}
-          </StoreProvider>
-        </AuthProvider>
+        <I18nProvider>
+          <AuthProvider>
+            <StoreProvider>
+              {children}
+            </StoreProvider>
+          </AuthProvider>
+        </I18nProvider>
         <Analytics />
       </body>
     </html>

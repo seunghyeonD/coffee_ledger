@@ -1,0 +1,14 @@
+{
+  "dashboard": "Dashboard",
+  "dashboardShort": "Home",
+  "exportExcel": "Export to Excel",
+  "history": "Order History",
+  "historyShort": "History",
+  "members": "Members",
+  "membersShort": "Members",
+  "settings": "Settings",
+  "shops": "Menus",
+  "shopsShort": "Menus",
+  "summary": "Monthly Summary",
+  "summaryShort": "Summary"
+}

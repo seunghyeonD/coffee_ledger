@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useStore } from '@/lib/store';
 import { useAuth } from '@/lib/auth';
 import { formatMoney } from '@/lib/utils';
@@ -9,11 +10,12 @@ import Modal from '@/components/Modal';
 import NearbySearch from '@/components/NearbySearch';
 
 export default function Shops({ showToast }) {
+  const { t } = useTranslation(['shops', 'common']);
   const { shops, addShop, updateShop, deleteShop, addMenu, addMenusBulk, updateMenu, deleteMenu } = useStore();
   const { userRole } = useAuth();
   const [shopModal, setShopModal] = useState(null);
   const [menuModal, setMenuModal] = useState(null);
-  const [bulkModal, setBulkModal] = useState(null); // { shopId, text, parsed: [] }
+  const [bulkModal, setBulkModal] = useState(null);
   const [showNearby, setShowNearby] = useState(false);
   const [expandedShop, setExpandedShop] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
@@ -30,24 +32,24 @@ export default function Shops({ showToast }) {
     try {
       if (shopModal.id) {
         await updateShop(shopModal.id, shopModal.name, shopModal.color);
-        showToast('업체가 수정되었습니다.');
+        showToast(t('shopEdited'));
       } else {
         await addShop(shopModal.name, shopModal.color);
-        showToast('업체가 추가되었습니다!');
+        showToast(t('shopAdded'));
       }
       setShopModal(null);
     } catch (e) {
-      showToast('오류: ' + (e.message || '저장 실패'));
+      showToast(t('common:error', { message: e.message || t('common:saveFailed') }));
     }
   };
 
   const handleDeleteShop = async (id) => {
-    if (confirm('이 업체를 삭제하시겠습니까?')) {
+    if (confirm(t('confirmDeleteShop'))) {
       try {
         await deleteShop(id);
-        showToast('업체가 삭제되었습니다.');
+        showToast(t('shopDeleted'));
       } catch (e) {
-        showToast('오류: ' + (e.message || '삭제 실패'));
+        showToast(t('common:error', { message: e.message || t('common:saveFailed') }));
       }
     }
   };
@@ -57,24 +59,24 @@ export default function Shops({ showToast }) {
     try {
       if (menuModal.menuId) {
         await updateMenu(menuModal.shopId, menuModal.menuId, menuModal.name, menuModal.price);
-        showToast('메뉴가 수정되었습니다.');
+        showToast(t('menuEdited'));
       } else {
         await addMenu(menuModal.shopId, menuModal.name, menuModal.price);
-        showToast('메뉴가 추가되었습니다!');
+        showToast(t('menuAdded'));
       }
       setMenuModal(null);
     } catch (e) {
-      showToast('오류: ' + (e.message || '저장 실패'));
+      showToast(t('common:error', { message: e.message || t('common:saveFailed') }));
     }
   };
 
   const handleDeleteMenu = async (shopId, menuId) => {
-    if (confirm('이 메뉴를 삭제하시겠습니까?')) {
+    if (confirm(t('confirmDeleteMenu'))) {
       try {
         await deleteMenu(shopId, menuId);
-        showToast('메뉴가 삭제되었습니다.');
+        showToast(t('menuDeleted'));
       } catch (e) {
-        showToast('오류: ' + (e.message || '삭제 실패'));
+        showToast(t('common:error', { message: e.message || t('common:saveFailed') }));
       }
     }
   };
@@ -84,13 +86,10 @@ export default function Shops({ showToast }) {
       .map(line => line.trim())
       .filter(line => line)
       .map(line => {
-        // "메뉴명 가격" or "메뉴명\t가격" or "메뉴명,가격"
         const match = line.match(/^(.+?)\s*[,\t]\s*([0-9,]+)\s*원?\s*$/);
         if (match) return { name: match[1].trim(), price: Number(match[2].replace(/,/g, '')) };
-        // "가격 메뉴명" or "가격\t메뉴명"
         const match2 = line.match(/^([0-9,]+)\s*원?\s*[,\t]\s*(.+)$/);
         if (match2) return { name: match2[2].trim(), price: Number(match2[1].replace(/,/g, '')) };
-        // "메뉴명 4500" (space + number at end)
         const match3 = line.match(/^(.+?)\s+([0-9,]+)\s*원?\s*$/);
         if (match3) return { name: match3[1].trim(), price: Number(match3[2].replace(/,/g, '')) };
         return { name: line, price: 0, invalid: true };
@@ -104,29 +103,29 @@ export default function Shops({ showToast }) {
   const handleBulkImport = async () => {
     const valid = bulkModal.parsed.filter(m => !m.invalid && m.name && m.price > 0);
     if (valid.length === 0) {
-      showToast('등록할 수 있는 메뉴가 없습니다.');
+      showToast(t('noBatchMenus'));
       return;
     }
     try {
       await addMenusBulk(bulkModal.shopId, valid);
-      showToast(`${valid.length}개 메뉴가 등록되었습니다!`);
+      showToast(t('batchRegistered', { count: valid.length }));
       setBulkModal(null);
     } catch (e) {
-      showToast('오류: ' + (e.message || '일괄 등록 실패'));
+      showToast(t('common:error', { message: e.message || t('batchFailed') }));
     }
   };
 
   return (
     <>
       <div className="page-header">
-        <h1>메뉴 관리</h1>
+        <h1>{t('title')}</h1>
         {canDo(userRole, 'addShop') && (
           <div style={{ display: 'flex', gap: 8 }}>
             <button className="btn" onClick={() => setShowNearby(true)}>
-              {'\u{1F4CD}'} 주변 카페 찾기
+              {'\u{1F4CD}'} {t('findNearbyCafe')}
             </button>
             <button className="btn btn-primary" onClick={() => setShopModal({ name: '', color: '#4a90d9' })}>
-              + 업체 추가
+              {t('addShop')}
             </button>
           </div>
         )}
@@ -143,18 +142,18 @@ export default function Shops({ showToast }) {
               <h3>
                 {s.name}
                 {isMobile && <span className="shop-toggle-icon">{expandedShop === s.id ? '\u25B2' : '\u25BC'}</span>}
-                {isMobile && <span className="shop-menu-count">{s.menus.length}개 메뉴</span>}
+                {isMobile && <span className="shop-menu-count">{t('menuCount', { count: s.menus.length })}</span>}
               </h3>
               {canDo(userRole, 'updateShop') && (
                 <div className="shop-actions" onClick={e => e.stopPropagation()}>
-                  <button className="btn btn-sm" onClick={() => setShopModal({ id: s.id, name: s.name, color: s.color })}>수정</button>
-                  <button className="btn btn-sm" onClick={() => handleDeleteShop(s.id)}>삭제</button>
+                  <button className="btn btn-sm" onClick={() => setShopModal({ id: s.id, name: s.name, color: s.color })}>{t('common:edit')}</button>
+                  <button className="btn btn-sm" onClick={() => handleDeleteShop(s.id)}>{t('common:delete')}</button>
                 </div>
               )}
             </div>
             <div className="shop-menu-list">
               {s.menus.length === 0 ? (
-                <div className="empty-state">메뉴가 없습니다.</div>
+                <div className="empty-state">{t('noMenu')}</div>
               ) : (
                 s.menus.map(m => (
                   <div key={m.id} className="menu-item">
@@ -163,8 +162,8 @@ export default function Shops({ showToast }) {
                       <span className="menu-item-price">{formatMoney(m.price)}</span>
                       {canDo(userRole, 'updateMenu') && (
                       <div className="menu-item-actions">
-                        <button className="btn btn-sm" onClick={() => setMenuModal({ shopId: s.id, menuId: m.id, name: m.name, price: m.price })}>수정</button>
-                        <button className="btn btn-sm text-danger" onClick={() => handleDeleteMenu(s.id, m.id)}>삭제</button>
+                        <button className="btn btn-sm" onClick={() => setMenuModal({ shopId: s.id, menuId: m.id, name: m.name, price: m.price })}>{t('common:edit')}</button>
+                        <button className="btn btn-sm text-danger" onClick={() => handleDeleteMenu(s.id, m.id)}>{t('common:delete')}</button>
                       </div>
                     )}
                     </div>
@@ -174,10 +173,10 @@ export default function Shops({ showToast }) {
               {canDo(userRole, 'addMenu') && (
                 <div className="shop-menu-add-actions">
                   <button className="btn-add-menu" onClick={() => setMenuModal({ shopId: s.id, name: '', price: '' })}>
-                    + 메뉴 추가
+                    {t('addMenu')}
                   </button>
                   <button className="btn-add-menu btn-bulk-menu" onClick={() => setBulkModal({ shopId: s.id, text: '', parsed: [] })}>
-                    일괄 등록
+                    {t('batchRegister')}
                   </button>
                 </div>
               )}
@@ -186,72 +185,67 @@ export default function Shops({ showToast }) {
         ))}
       </div>
 
-      {/* Nearby Search */}
       {showNearby && (
         <NearbySearch
           onClose={() => setShowNearby(false)}
           onSelect={async (cafe) => {
             try {
               await addShop(cafe.name, '#4a90d9');
-              showToast(`${cafe.name}이(가) 추가되었습니다!`);
+              showToast(t('cafeAdded', { name: cafe.name }));
               setShowNearby(false);
             } catch (e) {
-              showToast('오류: ' + (e.message || '추가 실패'));
+              showToast(t('common:error', { message: e.message || t('addFailed') }));
             }
           }}
         />
       )}
 
-      {/* Shop Modal */}
-      <Modal open={!!shopModal} onClose={() => setShopModal(null)} title={shopModal?.id ? '업체 수정' : '업체 추가'}>
+      <Modal open={!!shopModal} onClose={() => setShopModal(null)} title={shopModal?.id ? t('editShop') : t('addShopTitle')}>
         {shopModal && (
           <form onSubmit={handleSaveShop}>
             <div className="form-group">
-              <label>업체명</label>
-              <input type="text" value={shopModal.name} onChange={e => setShopModal({ ...shopModal, name: e.target.value })} placeholder="예: 스타벅스" required />
+              <label>{t('shopName')}</label>
+              <input type="text" value={shopModal.name} onChange={e => setShopModal({ ...shopModal, name: e.target.value })} placeholder={t('shopNamePlaceholder')} required />
             </div>
             <div className="form-group">
-              <label>색상</label>
+              <label>{t('color')}</label>
               <input type="color" value={shopModal.color} onChange={e => setShopModal({ ...shopModal, color: e.target.value })} />
             </div>
             <div className="form-actions">
-              <button type="button" className="btn" onClick={() => setShopModal(null)}>취소</button>
-              <button type="submit" className="btn btn-primary">저장</button>
+              <button type="button" className="btn" onClick={() => setShopModal(null)}>{t('common:cancel')}</button>
+              <button type="submit" className="btn btn-primary">{t('common:save')}</button>
             </div>
           </form>
         )}
       </Modal>
 
-      {/* Menu Modal */}
-      <Modal open={!!menuModal} onClose={() => setMenuModal(null)} title={menuModal?.menuId ? '메뉴 수정' : '메뉴 추가'}>
+      <Modal open={!!menuModal} onClose={() => setMenuModal(null)} title={menuModal?.menuId ? t('editMenu') : t('addMenuTitle')}>
         {menuModal && (
           <form onSubmit={handleSaveMenu}>
             <div className="form-group">
-              <label>메뉴명</label>
-              <input type="text" value={menuModal.name} onChange={e => setMenuModal({ ...menuModal, name: e.target.value })} placeholder="예: 아메리카노" required />
+              <label>{t('menuName')}</label>
+              <input type="text" value={menuModal.name} onChange={e => setMenuModal({ ...menuModal, name: e.target.value })} placeholder={t('menuNamePlaceholder')} required />
             </div>
             <div className="form-group">
-              <label>가격 (원)</label>
-              <input type="number" value={menuModal.price} onChange={e => setMenuModal({ ...menuModal, price: e.target.value })} placeholder="예: 2300" step="100" required />
+              <label>{t('price')}</label>
+              <input type="number" value={menuModal.price} onChange={e => setMenuModal({ ...menuModal, price: e.target.value })} placeholder={t('pricePlaceholder')} step="100" required />
             </div>
             <div className="form-actions">
-              <button type="button" className="btn" onClick={() => setMenuModal(null)}>취소</button>
-              <button type="submit" className="btn btn-primary">저장</button>
+              <button type="button" className="btn" onClick={() => setMenuModal(null)}>{t('common:cancel')}</button>
+              <button type="submit" className="btn btn-primary">{t('common:save')}</button>
             </div>
           </form>
         )}
       </Modal>
 
-      {/* Bulk Import Modal */}
-      <Modal open={!!bulkModal} onClose={() => setBulkModal(null)} title="메뉴 일괄 등록">
+      <Modal open={!!bulkModal} onClose={() => setBulkModal(null)} title={t('batchTitle')}>
         {bulkModal && (
           <div className="bulk-import">
-            <p className="bulk-import-desc">
-              배달앱에서 메뉴를 복사해서 붙여넣으세요.<br />
-              한 줄에 하나의 메뉴를 입력합니다.
+            <p className="bulk-import-desc" style={{ whiteSpace: 'pre-line' }}>
+              {t('batchDesc')}
             </p>
             <div className="bulk-import-format">
-              <strong>지원 형식</strong>
+              <strong>{t('supportedFormats')}</strong>
               <code>아메리카노 4500</code>
               <code>카페라떼, 5000</code>
               <code>바닐라라떼{'\t'}5500</code>
@@ -265,26 +259,26 @@ export default function Shops({ showToast }) {
             />
             {bulkModal.parsed.length > 0 && (
               <div className="bulk-import-preview">
-                <strong>미리보기 ({bulkModal.parsed.filter(m => !m.invalid).length}개 인식)</strong>
+                <strong>{t('preview')} ({t('recognized', { count: bulkModal.parsed.filter(m => !m.invalid).length })})</strong>
                 <div className="bulk-import-list">
                   {bulkModal.parsed.map((m, i) => (
                     <div key={i} className={`bulk-import-item ${m.invalid ? 'invalid' : ''}`}>
                       <span>{m.name}</span>
-                      <span>{m.invalid ? '인식 불가' : formatMoney(m.price)}</span>
+                      <span>{m.invalid ? t('invalid') : formatMoney(m.price)}</span>
                     </div>
                   ))}
                 </div>
               </div>
             )}
             <div className="form-actions">
-              <button type="button" className="btn" onClick={() => setBulkModal(null)}>취소</button>
+              <button type="button" className="btn" onClick={() => setBulkModal(null)}>{t('common:cancel')}</button>
               <button
                 type="button"
                 className="btn btn-primary"
                 onClick={handleBulkImport}
                 disabled={!bulkModal.parsed.some(m => !m.invalid && m.price > 0)}
               >
-                {bulkModal.parsed.filter(m => !m.invalid && m.price > 0).length}개 메뉴 등록
+                {t('registerMenus', { count: bulkModal.parsed.filter(m => !m.invalid && m.price > 0).length })}
               </button>
             </div>
           </div>
