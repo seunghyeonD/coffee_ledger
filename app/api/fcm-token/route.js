@@ -36,13 +36,19 @@ export async function POST(request) {
     }
 
     const supabase = getSupabaseAdmin();
-    const { error } = await supabase.from('fcm_tokens').upsert(
-      { user_id: userId, company_id: companyId, token, enabled: true },
-      { onConflict: 'user_id,token' }
+
+    // 같은 유저+기업의 기존 토큰 삭제 후 새 토큰 등록 (중복 방지)
+    await supabase.from('fcm_tokens')
+      .delete()
+      .eq('user_id', userId)
+      .eq('company_id', companyId);
+
+    const { error } = await supabase.from('fcm_tokens').insert(
+      { user_id: userId, company_id: companyId, token, enabled: true }
     );
 
     if (error) {
-      console.error('FCM token upsert error:', error);
+      console.error('FCM token insert error:', error);
       return Response.json({ error: error.message }, { status: 500 });
     }
 
