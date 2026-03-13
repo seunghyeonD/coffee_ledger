@@ -6,6 +6,7 @@ import { useStore } from '@/lib/store';
 import {
   requestNotificationPermission,
   disableFCMToken,
+  getFCMTokenStatus,
   getNotificationPreferences,
   upsertNotificationPreferences,
 } from '@/lib/fcm';
@@ -29,17 +30,21 @@ export default function NotificationSettings({ showToast, embedded = false }) {
   useEffect(() => {
     if (!user || !companyId) return;
     let cancelled = false;
-    getNotificationPreferences(user.id, companyId)
-      .then(prefs => {
-        if (cancelled) return;
-        if (prefs) {
-          setEnabled(true);
-          setOrderEnabled(prefs.order_registered_enabled ?? true);
-          setLowBalanceEnabled(prefs.low_balance_enabled ?? true);
-          setThreshold(prefs.low_balance_threshold ?? 5000);
-        }
-      })
-      .catch(() => {});
+
+    // fcm_tokens.enabled로 알림 토글 상태 결정
+    Promise.all([
+      getFCMTokenStatus(user.id, companyId),
+      getNotificationPreferences(user.id, companyId),
+    ]).then(([tokenStatus, prefs]) => {
+      if (cancelled) return;
+      setEnabled(tokenStatus?.enabled ?? false);
+      if (prefs) {
+        setOrderEnabled(prefs.order_registered_enabled ?? true);
+        setLowBalanceEnabled(prefs.low_balance_enabled ?? true);
+        setThreshold(prefs.low_balance_threshold ?? 5000);
+      }
+    }).catch(() => {});
+
     return () => { cancelled = true; };
   }, [user, companyId]);
 

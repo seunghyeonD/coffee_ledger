@@ -1,5 +1,31 @@
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
 
+// FCM 토큰 상태 조회
+export async function GET(request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get('userId');
+    const companyId = searchParams.get('companyId');
+
+    if (!userId || !companyId) {
+      return Response.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    const supabase = getSupabaseAdmin();
+    const { data } = await supabase.from('fcm_tokens')
+      .select('enabled')
+      .eq('user_id', userId)
+      .eq('company_id', companyId)
+      .limit(1)
+      .maybeSingle();
+
+    return Response.json({ exists: !!data, enabled: data?.enabled ?? false });
+  } catch (error) {
+    console.error('FCM token status error:', error);
+    return Response.json({ error: 'Failed to get status' }, { status: 500 });
+  }
+}
+
 // FCM 토큰 등록 (enabled: true)
 export async function POST(request) {
   try {
