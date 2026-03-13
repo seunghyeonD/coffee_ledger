@@ -5,7 +5,7 @@ import { useAuth } from '@/lib/auth';
 import { useStore } from '@/lib/store';
 import {
   requestNotificationPermission,
-  unregisterFCMToken,
+  disableFCMToken,
   getNotificationPreferences,
   upsertNotificationPreferences,
 } from '@/lib/fcm';
@@ -56,8 +56,8 @@ export default function NotificationSettings({ showToast, embedded = false }) {
       await savePreferences({ order_registered_enabled: true, low_balance_enabled: true, low_balance_threshold: threshold });
       showToast('알림이 활성화되었습니다.');
     } else {
-      // 알림 비활성화
-      await unregisterFCMToken(user.id);
+      // 알림 비활성화 (토큰 유지, enabled=false)
+      await disableFCMToken(user.id, companyId);
       setEnabled(false);
       showToast('알림이 비활성화되었습니다.');
     }

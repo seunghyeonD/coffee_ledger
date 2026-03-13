@@ -21,7 +21,8 @@ export async function POST(request) {
       const { data: tokenRows, error: tokenError } = await supabase
         .from('fcm_tokens')
         .select('token')
-        .eq('company_id', companyId);
+        .eq('company_id', companyId)
+        .eq('enabled', true);
 
       console.log('Manual noti - companyId:', companyId, 'tokens found:', tokenRows?.length, 'error:', tokenError);
 
@@ -74,6 +75,7 @@ export async function POST(request) {
         .from('fcm_tokens')
         .select('token, user_id')
         .eq('company_id', companyId)
+        .eq('enabled', true)
         .in('user_id', targetUserIds);
 
       if (!tokenRows || tokenRows.length === 0) {

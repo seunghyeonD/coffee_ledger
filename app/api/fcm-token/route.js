@@ -1,6 +1,6 @@
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
 
-// FCM 토큰 등록
+// FCM 토큰 등록 (enabled: true)
 export async function POST(request) {
   try {
     const { userId, companyId, token } = await request.json();
@@ -11,7 +11,7 @@ export async function POST(request) {
 
     const supabase = getSupabaseAdmin();
     const { error } = await supabase.from('fcm_tokens').upsert(
-      { user_id: userId, company_id: companyId, token },
+      { user_id: userId, company_id: companyId, token, enabled: true },
       { onConflict: 'user_id,token' }
     );
 
@@ -24,6 +24,33 @@ export async function POST(request) {
   } catch (error) {
     console.error('FCM token register error:', error);
     return Response.json({ error: 'Failed to register token' }, { status: 500 });
+  }
+}
+
+// FCM 토큰 enabled 상태 변경
+export async function PATCH(request) {
+  try {
+    const { userId, companyId, enabled } = await request.json();
+
+    if (!userId || !companyId || enabled === undefined) {
+      return Response.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    const supabase = getSupabaseAdmin();
+    const { error } = await supabase.from('fcm_tokens')
+      .update({ enabled })
+      .eq('user_id', userId)
+      .eq('company_id', companyId);
+
+    if (error) {
+      console.error('FCM token update error:', error);
+      return Response.json({ error: error.message }, { status: 500 });
+    }
+
+    return Response.json({ success: true });
+  } catch (error) {
+    console.error('FCM token toggle error:', error);
+    return Response.json({ error: 'Failed to update token' }, { status: 500 });
   }
 }
 

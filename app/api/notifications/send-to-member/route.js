@@ -64,6 +64,7 @@ export async function POST(request) {
       .from('fcm_tokens')
       .select('token')
       .eq('company_id', companyId)
+      .eq('enabled', true)
       .in('user_id', filteredUserIds);
 
     if (!tokenRows || tokenRows.length === 0) {
