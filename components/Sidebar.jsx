@@ -35,7 +35,7 @@ export default function Sidebar({ page, setPage, showToast }) {
 
       {company && (
         <div className="sidebar-company">
-          <span className="company-name">{company.name}</span>
+          <span className="company-name">{company.name} <span className="company-code">- {company.invite_code}</span></span>
           <button className="btn-switch-company" onClick={clearCompany} title="기업 전환">
             {'\u{1F504}'}
           </button>

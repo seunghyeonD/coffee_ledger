@@ -1716,6 +1716,12 @@ body {
   white-space: nowrap;
 }
 
+.company-code {
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.85em;
+}
+
 .btn-switch-company {
   background: none;
   border: none;
@@ -2447,6 +2453,42 @@ body {
 
 .btn-settings-action.danger:hover {
   background: #fff5f5;
+}
+
+/* Company Info */
+.company-info-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.company-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+}
+
+.company-info-row + .company-info-row {
+  border-top: 1px solid var(--border);
+}
+
+.company-info-label {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.company-info-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.company-info-code {
+  font-family: monospace;
+  letter-spacing: 2px;
 }
 
 /* Role Management */

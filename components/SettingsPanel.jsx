@@ -21,6 +21,7 @@ export default function SettingsPage({ showToast }) {
     { key: 'notifications', label: '알림' },
     ...(canDo(userRole, 'manageRoles') ? [{ key: 'roles', label: '역할 관리' }] : []),
     ...(canDo(userRole, 'sendNotification') ? [{ key: 'send-noti', label: '알림 발송' }] : []),
+    { key: 'company-info', label: '기업 정보', mobileOnly: true },
     { key: 'export', label: '보고서', mobileOnly: true },
     { key: 'account', label: '계정', mobileOnly: true },
   ];
@@ -233,6 +234,22 @@ export default function SettingsPage({ showToast }) {
                 {sendingNoti ? '발송중...' : '알림 발송'}
               </button>
             </form>
+          </div>
+        )}
+
+        {activeTab === 'company-info' && (
+          <div className="settings-section">
+            <div className="company-info-card">
+              <div className="company-info-row">
+                <span className="company-info-label">기업 이름</span>
+                <span className="company-info-value">{company?.name}</span>
+              </div>
+              <div className="company-info-row">
+                <span className="company-info-label">초대 코드</span>
+                <span className="company-info-value company-info-code">{company?.invite_code}</span>
+              </div>
+            </div>
+            <p className="settings-desc">초대 코드를 공유하면 다른 멤버가 기업에 참여할 수 있습니다.</p>
           </div>
         )}
 
