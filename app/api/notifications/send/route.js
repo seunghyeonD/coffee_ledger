@@ -135,16 +135,10 @@ export async function POST(request) {
     // 알림 메시지 구성
     const notification = buildNotification(type, data);
 
-    // FCM 발송
+    // FCM 발송 (notification 필드 없이 data만 전송하여 중복 알림 방지)
     const response = await getAdminMessaging().sendEachForMulticast({
       tokens,
-      notification,
-      data: { type, url: '/' },
-      webpush: {
-        notification: {
-          icon: 'https://coffeeledger.co.kr/notification-icon.png',
-        },
-      },
+      data: { type, url: '/', title: notification.title, body: notification.body },
     });
 
     // 만료된 토큰 정리

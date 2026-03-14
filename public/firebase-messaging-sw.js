@@ -13,9 +13,11 @@ firebase.initializeApp({
 const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
-  const { title, body } = payload.notification || {};
-  self.registration.showNotification(title || '커피 대장부', {
-    body: body || '',
-    icon: '/notification-icon.png',
-  });
+  const { title, body } = payload.data || {};
+  if (title || body) {
+    self.registration.showNotification(title || '커피 대장부', {
+      body: body || '',
+      icon: '/notification-icon.png',
+    });
+  }
 });
