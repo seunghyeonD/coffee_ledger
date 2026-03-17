@@ -3,15 +3,13 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/lib/auth';
-import { useStore } from '@/lib/store';
 import { authFetch } from '@/lib/api-fetch';
 import { canDo, getRoleLabel } from '@/lib/roles';
 import NotificationSettings from './NotificationSettings';
 
 export default function SettingsPage({ showToast }) {
   const { t } = useTranslation(['settings', 'common', 'company']);
-  const { signOut, clearCompany, userRole, getCompanyMembers, updateMemberRole, updateMemberName, removeMember, user, company } = useAuth();
-  const store = useStore();
+  const { signOut, clearCompany, userRole, getCompanyMembers, updateMemberRole, updateMemberName, removeMember, deleteAccount, user, company } = useAuth();
   const [activeTab, setActiveTab] = useState('notifications');
   const [companyMembers, setCompanyMembers] = useState([]);
   const [loadingMembers, setLoadingMembers] = useState(false);
@@ -34,8 +32,8 @@ export default function SettingsPage({ showToast }) {
     ...(canDo(userRole, 'manageRoles') ? [{ key: 'roles', label: t('tabs.roles') }] : []),
     ...(canDo(userRole, 'sendNotification') ? [{ key: 'send-noti', label: t('tabs.broadcast') }] : []),
     { key: 'language', label: t('language.title') },
+    { key: 'contact', label: t('tabs.contact') },
     { key: 'company-info', label: t('tabs.company'), mobileOnly: true },
-    { key: 'export', label: t('tabs.report'), mobileOnly: true },
     { key: 'account', label: t('tabs.account'), mobileOnly: true },
   ];
 
@@ -119,10 +117,14 @@ export default function SettingsPage({ showToast }) {
     }
   };
 
-  const handleExport = () => {
-    import('@/lib/exportExcel').then(mod => {
-      mod.exportExcel(store, showToast);
-    });
+  const handleDeleteAccount = async () => {
+    if (!confirm(t('account.confirmDelete'))) return;
+    if (!confirm(t('account.confirmDeleteFinal'))) return;
+    try {
+      await deleteAccount();
+    } catch (e) {
+      showToast(t('account.deleteFailed'));
+    }
   };
 
   const handleSignOut = async () => {
@@ -272,12 +274,15 @@ export default function SettingsPage({ showToast }) {
           </div>
         )}
 
-        {activeTab === 'export' && (
+        {activeTab === 'contact' && (
           <div className="settings-section">
-            <p className="settings-desc">{t('report.description')}</p>
-            <button className="btn-settings-action" onClick={handleExport}>
-              {t('report.exportExcel')}
-            </button>
+            <p className="settings-desc">{t('contact.description')}</p>
+            <a href="mailto:dww7541@gmail.com" className="btn-settings-action" style={{ textAlign: 'center', display: 'block', textDecoration: 'none' }}>
+              {t('contact.sendEmail')}
+            </a>
+            <p className="settings-desc" style={{ marginTop: 12, fontSize: 13 }}>
+              {t('contact.email')}: dww7541@gmail.com
+            </p>
           </div>
         )}
 
@@ -289,6 +294,12 @@ export default function SettingsPage({ showToast }) {
             <button className="btn-settings-action danger" onClick={handleSignOut}>
               {t('common:logout')}
             </button>
+            <div style={{ marginTop: 32, paddingTop: 16, borderTop: '1px solid var(--border-color, #eee)' }}>
+              <p className="settings-desc">{t('account.deleteDescription')}</p>
+              <button className="btn-settings-action danger" onClick={handleDeleteAccount}>
+                {t('account.deleteAccount')}
+              </button>
+            </div>
           </div>
         )}
       </div>
