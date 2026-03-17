@@ -295,19 +295,19 @@ export default function LoginPage() {
             <div className="auth-terms-modal-body">
               {showTerms === 'terms' ? (
                 <>
-                  {[1,2,3,4,5,6].map(n => (
+                  {Array.from({ length: Number(t('legal:terms.articleCount')) || 6 }, (_, i) => i + 1).map(n => (
                     <div key={n}>
                       <h4>{t(`legal:terms.article${n}Title`)}</h4>
-                      <p>{t(`legal:terms.article${n}Content`)}</p>
+                      <p style={{ whiteSpace: 'pre-line' }}>{t(`legal:terms.article${n}Content`)}</p>
                     </div>
                   ))}
                 </>
               ) : (
                 <>
-                  {[1,2,3,4,5,6].map(n => (
+                  {Array.from({ length: Number(t('legal:privacy.articleCount')) || 6 }, (_, i) => i + 1).map(n => (
                     <div key={n}>
                       <h4>{t(`legal:privacy.article${n}Title`)}</h4>
-                      <p>{t(`legal:privacy.article${n}Content`)}</p>
+                      <p style={{ whiteSpace: 'pre-line' }}>{t(`legal:privacy.article${n}Content`)}</p>
                     </div>
                   ))}
                 </>
