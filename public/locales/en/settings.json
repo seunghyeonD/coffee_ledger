@@ -42,9 +42,17 @@
     "title": "Notification Settings",
     "unsupported": "This browser does not support push notifications."
   },
-  "report": {
-    "description": "Download current data as an Excel file.",
-    "exportExcel": "Export to Excel"
+  "contact": {
+    "description": "If you have any questions or issues while using the service, please contact us via the email below.",
+    "email": "Email",
+    "sendEmail": "Contact Us"
+  },
+  "account": {
+    "confirmDelete": "Are you sure you want to delete your account?\n\nYou will be removed from all companies, and your account and related data will be permanently deleted.",
+    "confirmDeleteFinal": "This action cannot be undone. Are you sure you want to proceed?",
+    "deleteAccount": "Delete Account",
+    "deleteDescription": "Deleting your account will permanently remove your account and all related data.",
+    "deleteFailed": "Failed to delete account. Please try again."
   },
   "roles": {
     "confirmRemoveUser": "Remove '{{email}}' from this company?\nNotification settings for this user will also be deleted.",
@@ -67,7 +75,7 @@
     "broadcast": "Broadcast",
     "company": "Company Info",
     "notification": "Notifications",
-    "report": "Reports",
+    "contact": "Contact",
     "roles": "Role Management"
   }
 }

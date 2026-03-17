@@ -42,9 +42,17 @@
     "title": "알림 설정",
     "unsupported": "이 브라우저는 푸시 알림을 지원하지 않습니다."
   },
-  "report": {
-    "description": "현재 데이터를 엑셀 파일로 다운로드합니다.",
-    "exportExcel": "엑셀 내보내기"
+  "contact": {
+    "description": "서비스 이용 중 문의사항이나 불편사항이 있으시면 아래 이메일로 연락해 주세요.",
+    "email": "이메일",
+    "sendEmail": "문의하기"
+  },
+  "account": {
+    "confirmDelete": "정말로 회원 탈퇴를 하시겠습니까?\n\n탈퇴 시 모든 기업에서 제거되며, 계정 및 관련 데이터가 영구적으로 삭제됩니다.",
+    "confirmDeleteFinal": "이 작업은 되돌릴 수 없습니다. 정말 탈퇴하시겠습니까?",
+    "deleteAccount": "회원 탈퇴",
+    "deleteDescription": "회원 탈퇴 시 계정 및 모든 관련 데이터가 영구적으로 삭제됩니다.",
+    "deleteFailed": "회원 탈퇴에 실패했습니다. 다시 시도해주세요."
   },
   "roles": {
     "confirmRemoveUser": "{{email}}'을(를) 이 기업에서 제거하시겠습니까?\n해당 유저의 알림 설정도 함께 삭제됩니다.",
@@ -67,7 +75,7 @@
     "broadcast": "알림 발송",
     "company": "기업 정보",
     "notification": "알림",
-    "report": "보고서",
+    "contact": "문의하기",
     "roles": "역할 관리"
   }
 }
