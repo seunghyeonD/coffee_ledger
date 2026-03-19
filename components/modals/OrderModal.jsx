@@ -17,6 +17,9 @@ export default function OrderModal({ date, onClose, showToast }) {
   const [menuName, setMenuName] = useState('');
   const [menuPrice, setMenuPrice] = useState(0);
   const [menuSearch, setMenuSearch] = useState('');
+  const [extraTarget, setExtraTarget] = useState(null); // { orderId, memberId, memberName }
+  const [extraAmount, setExtraAmount] = useState('');
+  const [extraNote, setExtraNote] = useState('');
 
   const d = new Date(date);
   const dayNames = t('common:dayNames', { returnObjects: true });
@@ -49,6 +52,24 @@ export default function OrderModal({ date, onClose, showToast }) {
     try {
       await addOrder(date, memberId, shopId, menuName, menuPrice);
       showToast(t('orderRegistered'));
+    } catch (e) {
+      showToast(t('common:error', { message: e.message || t('orderFailed') }));
+    }
+  };
+
+  const handleExtraAmount = async () => {
+    const amount = Number(extraAmount);
+    if (isNaN(amount) || amount === 0) {
+      showToast(t('invalidPrice'));
+      return;
+    }
+    try {
+      const label = extraNote.trim() || t('extraAmount');
+      await addOrder(date, extraTarget.memberId, extraTarget.shopId, label, amount);
+      showToast(t('orderRegistered'));
+      setExtraTarget(null);
+      setExtraAmount('');
+      setExtraNote('');
     } catch (e) {
       showToast(t('common:error', { message: e.message || t('orderFailed') }));
     }
@@ -148,16 +169,57 @@ export default function OrderModal({ date, onClose, showToast }) {
         ) : (
           dayOrders.map(o => {
             const member = members.find(m => m.id === o.member_id);
+            const isExtraTarget = extraTarget?.orderId === o.id;
             return (
-              <div key={o.id} className="day-order-item">
-                <div className="order-info">
-                  <span className="order-member">{member?.name || '?'}</span>
-                  <span className="order-menu">{o.menu_name}</span>
+              <div key={o.id}>
+                <div className="day-order-item">
+                  <div className="order-info">
+                    <span
+                      className="order-member clickable"
+                      onClick={() => {
+                        if (isExtraTarget) {
+                          setExtraTarget(null);
+                          setExtraAmount('');
+                          setExtraNote('');
+                        } else {
+                          setExtraTarget({ orderId: o.id, memberId: o.member_id, shopId: o.shop_id, memberName: member?.name });
+                          setExtraAmount('');
+                          setExtraNote('');
+                        }
+                      }}
+                    >{member?.name || '?'}</span>
+                    <span className="order-menu">{o.menu_name}</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span className="order-price">{formatMoney(o.price)}</span>
+                    {canDo(userRole, 'deleteOrder') && <button className="day-order-delete" onClick={() => handleDeleteOrder(o.id)}>&times;</button>}
+                  </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span className="order-price">{formatMoney(o.price)}</span>
-                  {canDo(userRole, 'deleteOrder') && <button className="day-order-delete" onClick={() => handleDeleteOrder(o.id)}>&times;</button>}
-                </div>
+                {isExtraTarget && (
+                  <div className="extra-amount-row">
+                    <span className="extra-amount-label">{t('extraAmountFor', { name: member?.name })}</span>
+                    <input
+                      type="text"
+                      className="extra-amount-input"
+                      placeholder={t('enterExtraNote')}
+                      value={extraNote}
+                      onChange={e => setExtraNote(e.target.value)}
+                    />
+                    <div className="extra-amount-input-group">
+                      <input
+                        type="number"
+                        className="extra-amount-input"
+                        placeholder={t('enterExtraAmount')}
+                        value={extraAmount}
+                        onChange={e => setExtraAmount(e.target.value)}
+                        autoFocus
+                        onKeyDown={e => e.key === 'Enter' && handleExtraAmount()}
+                      />
+                      <button className="btn btn-primary btn-sm" onClick={handleExtraAmount}>{t('common:add')}</button>
+                      <button className="btn btn-sm" onClick={() => { setExtraTarget(null); setExtraAmount(''); setExtraNote(''); }}>{t('common:cancel')}</button>
+                    </div>
+                  </div>
+                )}
               </div>
             );
           })

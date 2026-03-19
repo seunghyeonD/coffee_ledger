@@ -19,5 +19,9 @@
   "step2": "2. Select Menu",
   "step3": "3. Select Member",
   "title": "New Order",
-  "todayOrders": "Orders for this day"
+  "todayOrders": "Orders for this day",
+  "extraAmount": "Extra charge",
+  "extraAmountFor": "Extra for {{name}}",
+  "enterExtraAmount": "Enter extra amount",
+  "enterExtraNote": "Description (e.g. syrup, size up)"
 }

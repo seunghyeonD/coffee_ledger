@@ -19,5 +19,9 @@
   "step2": "2. 메뉴 선택",
   "step3": "3. 멤버 선택",
   "title": "주문 등록",
-  "todayOrders": "이 날의 주문"
+  "todayOrders": "이 날의 주문",
+  "extraAmount": "추가금액",
+  "extraAmountFor": "{{name}} 추가금액",
+  "enterExtraAmount": "추가금액 입력",
+  "enterExtraNote": "내용 입력 (예: 시럽 추가, 사이즈업)"
 }

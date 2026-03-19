@@ -1,5 +1,6 @@
 {
   "appName": "Coffee Ledger",
+  "add": "Add",
   "cancel": "Cancel",
   "checkSupabase": "Please check Supabase connection.",
   "close": "OK",

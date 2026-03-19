@@ -1,5 +1,6 @@
 {
   "appName": "커피 대장부",
+  "add": "추가",
   "cancel": "취소",
   "checkSupabase": "Supabase 연결을 확인해주세요.",
   "close": "확인",
