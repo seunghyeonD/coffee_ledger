@@ -97,7 +97,7 @@ export default function Home() {
         {page === 'members' && <Members showToast={showToast} />}
         {page === 'shops' && <Shops showToast={showToast} />}
         {page === 'history' && <History showToast={showToast} />}
-        {page === 'summary' && <Summary />}
+        {page === 'summary' && <Summary showToast={showToast} />}
         {page === 'settings' && <SettingsPage showToast={showToast} />}
       </main>
       <FCMInitializer showToast={showToast} />

@@ -5,11 +5,18 @@ import { useTranslation } from 'react-i18next';
 import { useStore } from '@/lib/store';
 import { formatMoney, formatDate, getWeeksInMonth, DAY_NAMES } from '@/lib/utils';
 
-export default function Summary() {
-  const { t } = useTranslation('summary');
-  const { members, orders, deposits, getOrdersByMonth, getActiveMonths, getMemberBalance } = useStore();
+export default function Summary({ showToast }) {
+  const { t } = useTranslation(['summary', 'sidebar']);
+  const store = useStore();
+  const { members, orders, deposits, getOrdersByMonth, getActiveMonths, getMemberBalance } = store;
   const months = getActiveMonths();
   const [selectedMonth, setSelectedMonth] = useState(months[months.length - 1] || '');
+
+  const handleExport = () => {
+    import('@/lib/exportExcel').then(mod => {
+      mod.exportExcel(store, showToast);
+    });
+  };
 
   if (!selectedMonth) return <div className="empty-state">{t('noData')}</div>;
 
@@ -21,9 +28,14 @@ export default function Summary() {
     <>
       <div className="page-header">
         <h1>{t('title')}</h1>
-        <select className="select-input" value={selectedMonth} onChange={e => setSelectedMonth(e.target.value)}>
-          {months.map(m => <option key={m} value={m}>{m}</option>)}
-        </select>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <select className="select-input" value={selectedMonth} onChange={e => setSelectedMonth(e.target.value)}>
+            {months.map(m => <option key={m} value={m}>{m}</option>)}
+          </select>
+          <button className="btn-download-report" onClick={handleExport}>
+            {'\u{1F4E5}'} {t('summary:download')}
+          </button>
+        </div>
       </div>
 
       {weeks.map((week, wi) => {

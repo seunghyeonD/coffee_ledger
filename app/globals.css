@@ -1152,6 +1152,19 @@ body {
   overflow: hidden;
 }
 
+.btn-download-report {
+  display: none;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
 .summary-table-section h3 {
   font-size: 16px;
   font-weight: 600;
@@ -1979,12 +1992,10 @@ body {
     padding: 8px;
   }
   .btn-export {
-    font-size: 0;
-    padding: 10px;
+    display: none;
   }
-  .btn-export::before {
-    content: "\1F4E5";
-    font-size: 16px;
+  .btn-download-report {
+    display: inline-block;
   }
 
   .main-content {
