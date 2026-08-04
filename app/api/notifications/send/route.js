@@ -1,6 +1,7 @@
 import { getAdminMessaging } from '@/lib/firebase-admin';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
 import { verifyAuth, validateString, isValidUUID } from '@/lib/api-auth';
+import { getUserEmails, sendNotificationEmails } from '@/lib/email';
 
 export async function POST(request) {
   try {
@@ -58,107 +59,108 @@ export async function POST(request) {
 
     const supabase = getSupabaseAdmin();
 
-    // 수동 알림은 모든 유저에게 발송
+    // 기업 전체 유저 + 알림 설정 조회
+    // 설정 행이 없는 유저는 기본값(모두 켜짐)으로 간주 — 옵트아웃 방식
     const isManual = type === 'manual';
-    let tokens = [];
 
-    if (isManual) {
-      const { data: tokenRows, error: tokenError } = await supabase
-        .from('fcm_tokens')
-        .select('token')
-        .eq('company_id', companyId)
-        .eq('enabled', true);
+    const [{ data: companyUsers }, { data: prefs }] = await Promise.all([
+      supabase
+        .from('user_companies')
+        .select('user_id, role')
+        .eq('company_id', companyId),
+      supabase
+        .from('notification_preferences')
+        .select('user_id, order_registered_enabled, low_balance_enabled, low_balance_threshold, email_enabled')
+        .eq('company_id', companyId),
+    ]);
 
-      if (!tokenRows || tokenRows.length === 0) {
-        return Response.json({ sent: 0 });
-      }
-      tokens = tokenRows.map(r => r.token);
-    } else {
+    if (!companyUsers || companyUsers.length === 0) {
+      return Response.json({ sent: 0, emailed: 0 });
+    }
+
+    const prefMap = new Map((prefs || []).map(p => [p.user_id, p]));
+
+    // 수동 알림은 모든 유저에게, 나머지는 해당 유형 알림을 끄지 않은 유저에게 발송
+    let targets = companyUsers;
+    if (!isManual) {
       const prefColumn = type === 'order_registered'
         ? 'order_registered_enabled'
         : 'low_balance_enabled';
 
-      const { data: prefs } = await supabase
-        .from('notification_preferences')
-        .select('user_id, low_balance_threshold')
-        .eq('company_id', companyId)
-        .eq(prefColumn, true);
-
-      if (!prefs || prefs.length === 0) {
-        return Response.json({ sent: 0 });
-      }
-
-      let targetUserIds = prefs.map(p => p.user_id);
+      targets = targets.filter(u => prefMap.get(u.user_id)?.[prefColumn] !== false);
 
       // 잔액 부족 알림인 경우: 관리자(master/admin)만 + 임계값 체크
       if (type === 'low_balance') {
-        const { data: ucData } = await supabase
-          .from('user_companies')
-          .select('user_id, role')
-          .eq('company_id', companyId)
-          .in('user_id', targetUserIds)
-          .in('role', ['master', 'admin']);
-
-        const adminUserIds = (ucData || []).map(uc => uc.user_id);
+        targets = targets.filter(u => u.role === 'master' || u.role === 'admin');
 
         if (data?.balance !== undefined) {
-          targetUserIds = prefs
-            .filter(p => adminUserIds.includes(p.user_id) && data.balance < (p.low_balance_threshold || 5000))
-            .map(p => p.user_id);
-        } else {
-          targetUserIds = adminUserIds;
+          targets = targets.filter(u => data.balance < (prefMap.get(u.user_id)?.low_balance_threshold || 5000));
         }
       }
-
-      if (targetUserIds.length === 0) {
-        return Response.json({ sent: 0 });
-      }
-
-      const { data: tokenRows } = await supabase
-        .from('fcm_tokens')
-        .select('token, user_id')
-        .eq('company_id', companyId)
-        .eq('enabled', true)
-        .in('user_id', targetUserIds);
-
-      if (!tokenRows || tokenRows.length === 0) {
-        return Response.json({ sent: 0 });
-      }
-
-      tokens = tokenRows.map(r => r.token);
     }
 
-    if (tokens.length === 0) {
-      return Response.json({ sent: 0 });
+    const targetUserIds = targets.map(u => u.user_id);
+
+    if (targetUserIds.length === 0) {
+      return Response.json({ sent: 0, emailed: 0 });
+    }
+
+    const emailUserIds = targetUserIds.filter(id => prefMap.get(id)?.email_enabled !== false);
+
+    const { data: tokenRows } = await supabase
+      .from('fcm_tokens')
+      .select('token')
+      .eq('company_id', companyId)
+      .eq('enabled', true)
+      .in('user_id', targetUserIds);
+
+    const tokens = (tokenRows || []).map(r => r.token);
+
+    if (tokens.length === 0 && emailUserIds.length === 0) {
+      return Response.json({ sent: 0, emailed: 0 });
     }
 
     // 알림 메시지 구성
     const notification = buildNotification(type, data);
 
-    // FCM 발송 (notification 필드 없이 data만 전송하여 중복 알림 방지)
-    const response = await getAdminMessaging().sendEachForMulticast({
-      tokens,
-      data: { type, url: '/', title: notification.title, body: notification.body },
-    });
+    let successCount = 0;
+    let failureCount = 0;
 
-    // 만료된 토큰 정리
-    const staleTokens = [];
-    response.responses.forEach((res, i) => {
-      if (res.error) {
-        if (res.error.code === 'messaging/registration-token-not-registered' ||
-            res.error.code === 'messaging/invalid-registration-token') {
-          staleTokens.push(tokens[i]);
+    if (tokens.length > 0) {
+      // FCM 발송 (notification 필드 없이 data만 전송하여 중복 알림 방지)
+      const response = await getAdminMessaging().sendEachForMulticast({
+        tokens,
+        data: { type, url: '/', title: notification.title, body: notification.body },
+      });
+      successCount = response.successCount;
+      failureCount = response.failureCount;
+
+      // 만료된 토큰 정리
+      const staleTokens = [];
+      response.responses.forEach((res, i) => {
+        if (res.error) {
+          if (res.error.code === 'messaging/registration-token-not-registered' ||
+              res.error.code === 'messaging/invalid-registration-token') {
+            staleTokens.push(tokens[i]);
+          }
         }
-      }
-    });
+      });
 
-    if (staleTokens.length > 0) {
-      await supabase.from('fcm_tokens').delete().in('token', staleTokens);
+      if (staleTokens.length > 0) {
+        await supabase.from('fcm_tokens').delete().in('token', staleTokens);
+      }
+    }
+
+    let emailed = 0;
+    if (emailUserIds.length > 0) {
+      const emails = await getUserEmails(emailUserIds);
+      emailed = await sendNotificationEmails(emails, notification.title, notification.body);
     }
 
     return Response.json({
-      sent: response.successCount,
-      failed: response.failureCount,
+      sent: successCount,
+      failed: failureCount,
+      emailed,
     });
   } catch (error) {
     console.error('Notification send error:', error);

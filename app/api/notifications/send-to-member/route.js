@@ -1,6 +1,7 @@
 import { getAdminMessaging } from '@/lib/firebase-admin';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
 import { verifyAuth, validateString, isValidUUID } from '@/lib/api-auth';
+import { getUserEmails, sendNotificationEmails } from '@/lib/email';
 
 export async function POST(request) {
   try {
@@ -57,29 +58,36 @@ export async function POST(request) {
       return Response.json({ sent: 0, matched: 0, reason: 'no_match' });
     }
 
-    // 자동 발송인 경우: 본인이 잔액 부족 알림을 켜놨는지 + 임계값 확인
+    // 매칭된 유저들의 알림 설정 조회
+    // 설정 행이 없는 유저는 기본값(모두 켜짐)으로 간주 — 옵트아웃 방식
+    const { data: prefs } = await supabase
+      .from('notification_preferences')
+      .select('user_id, low_balance_enabled, low_balance_threshold, email_enabled')
+      .eq('company_id', companyId)
+      .in('user_id', matchedUserIds);
+
+    const prefMap = new Map((prefs || []).map(p => [p.user_id, p]));
+
+    // 자동 발송인 경우: 본인이 잔액 부족 알림을 꺼놨는지 + 임계값 확인
     let filteredUserIds = matchedUserIds;
     if (autoTriggered) {
-      const { data: prefs } = await supabase
-        .from('notification_preferences')
-        .select('user_id, low_balance_enabled, low_balance_threshold')
-        .eq('company_id', companyId)
-        .in('user_id', matchedUserIds)
-        .eq('low_balance_enabled', true);
+      const enabledUserIds = matchedUserIds.filter(id => prefMap.get(id)?.low_balance_enabled !== false);
 
-      if (!prefs || prefs.length === 0) {
+      if (enabledUserIds.length === 0) {
         return Response.json({ sent: 0, matched: matchedUserIds.length, reason: 'noti_disabled' });
       }
 
       // 임계값 체크
-      filteredUserIds = prefs
-        .filter(p => balance !== undefined ? balance < (p.low_balance_threshold || 5000) : true)
-        .map(p => p.user_id);
+      filteredUserIds = enabledUserIds.filter(id =>
+        balance !== undefined ? balance < (prefMap.get(id)?.low_balance_threshold || 5000) : true
+      );
 
       if (filteredUserIds.length === 0) {
         return Response.json({ sent: 0, matched: matchedUserIds.length, reason: 'above_threshold' });
       }
     }
+
+    const emailUserIds = filteredUserIds.filter(id => prefMap.get(id)?.email_enabled !== false);
 
     // 매칭된 유저들의 FCM 토큰 조회
     const { data: tokenRows } = await supabase
@@ -89,38 +97,47 @@ export async function POST(request) {
       .eq('enabled', true)
       .in('user_id', filteredUserIds);
 
-    if (!tokenRows || tokenRows.length === 0) {
+    const tokens = (tokenRows || []).map(r => r.token);
+
+    if (tokens.length === 0 && emailUserIds.length === 0) {
       return Response.json({ sent: 0, matched: matchedUserIds.length, reason: 'no_tokens' });
     }
 
-    const tokens = tokenRows.map(r => r.token);
     const balanceText = Number(balance).toLocaleString();
+    const title = '충전 요청';
+    const body = `${String(memberName)}님, 현재 잔액이 ${balanceText}원입니다. 커피비 충전을 부탁드립니다.`;
 
-    const response = await getAdminMessaging().sendEachForMulticast({
-      tokens,
-      data: {
-        type: 'charge_request',
-        url: '/',
-        title: '충전 요청',
-        body: `${String(memberName)}님, 현재 잔액이 ${balanceText}원입니다. 커피비 충전을 부탁드립니다.`,
-      },
-    });
+    let successCount = 0;
+    if (tokens.length > 0) {
+      const response = await getAdminMessaging().sendEachForMulticast({
+        tokens,
+        data: { type: 'charge_request', url: '/', title, body },
+      });
+      successCount = response.successCount;
 
-    // 만료 토큰 정리
-    const staleTokens = [];
-    response.responses.forEach((res, i) => {
-      if (res.error?.code === 'messaging/registration-token-not-registered' ||
-          res.error?.code === 'messaging/invalid-registration-token') {
-        staleTokens.push(tokens[i]);
+      // 만료 토큰 정리
+      const staleTokens = [];
+      response.responses.forEach((res, i) => {
+        if (res.error?.code === 'messaging/registration-token-not-registered' ||
+            res.error?.code === 'messaging/invalid-registration-token') {
+          staleTokens.push(tokens[i]);
+        }
+      });
+      if (staleTokens.length > 0) {
+        await supabase.from('fcm_tokens').delete().in('token', staleTokens);
       }
-    });
-    if (staleTokens.length > 0) {
-      await supabase.from('fcm_tokens').delete().in('token', staleTokens);
+    }
+
+    let emailed = 0;
+    if (emailUserIds.length > 0) {
+      const emails = await getUserEmails(emailUserIds);
+      emailed = await sendNotificationEmails(emails, title, body);
     }
 
     return Response.json({
-      sent: response.successCount,
+      sent: successCount,
       matched: matchedUserIds.length,
+      emailed,
     });
   } catch (error) {
     console.error('Send to member error:', error);
