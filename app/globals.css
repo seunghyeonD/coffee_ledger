@@ -146,6 +146,46 @@ body {
   letter-spacing: -0.5px;
 }
 
+/* ===== Page Tabs (내역/요약 등 페이지 내 탭 전환) ===== */
+.page-tabs {
+  display: flex;
+  gap: 4px;
+  width: fit-content;
+  padding: 4px;
+  margin-bottom: 20px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.page-tab {
+  padding: 8px 24px;
+  border: none;
+  border-radius: 7px;
+  background: none;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.page-tab.active {
+  background: var(--primary);
+  color: #fff;
+}
+
+@media (max-width: 480px) {
+  .page-tabs {
+    width: 100%;
+  }
+
+  .page-tab {
+    flex: 1;
+    padding: 8px 0;
+  }
+}
+
 /* ===== Account Info ===== */
 .account-info {
   display: flex;

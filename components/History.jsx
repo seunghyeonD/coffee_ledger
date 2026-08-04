@@ -7,12 +7,11 @@ import { useAuth } from '@/lib/auth';
 import { formatMoney } from '@/lib/utils';
 import { canDo } from '@/lib/roles';
 
-export default function History({ showToast }) {
+export default function History({ showToast, selectedMonth, setSelectedMonth }) {
   const { t } = useTranslation(['history', 'common']);
   const { members, shops, getOrdersByMonth, getActiveMonths, deleteOrder } = useStore();
   const { userRole } = useAuth();
   const months = getActiveMonths();
-  const [selectedMonth, setSelectedMonth] = useState(months[months.length - 1] || '');
   const [selectedMember, setSelectedMember] = useState('');
 
   let orders = getOrdersByMonth(selectedMonth);

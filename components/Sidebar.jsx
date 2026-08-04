@@ -14,7 +14,6 @@ export default function Sidebar({ page, setPage, showToast }) {
     { key: 'members', icon: '\u{1F465}', label: t('sidebar:members'), mobileLabel: t('sidebar:membersShort') },
     { key: 'shops', icon: '\u2615', label: t('sidebar:shops'), mobileLabel: t('sidebar:shopsShort') },
     { key: 'history', icon: '\u{1F4CB}', label: t('sidebar:history'), mobileLabel: t('sidebar:historyShort') },
-    { key: 'summary', icon: '\u{1F4CA}', label: t('sidebar:summary'), mobileLabel: t('sidebar:summaryShort') },
     { key: 'settings', icon: '\u2699\uFE0F', label: t('sidebar:settings'), mobileLabel: t('sidebar:settings') },
   ];
 

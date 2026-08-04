@@ -1,16 +1,14 @@
 'use client';
 
-import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '@/lib/store';
 import { formatMoney, formatDate, getWeeksInMonth, DAY_NAMES } from '@/lib/utils';
 
-export default function Summary({ showToast }) {
+export default function Summary({ showToast, selectedMonth, setSelectedMonth }) {
   const { t } = useTranslation(['summary', 'sidebar']);
   const store = useStore();
   const { members, orders, deposits, getOrdersByMonth, getActiveMonths, getMemberBalance } = store;
   const months = getActiveMonths();
-  const [selectedMonth, setSelectedMonth] = useState(months[months.length - 1] || '');
 
   const handleExport = () => {
     import('@/lib/exportExcel').then(mod => {

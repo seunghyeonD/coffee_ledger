@@ -11,8 +11,7 @@ import Sidebar from '@/components/Sidebar';
 import Dashboard from '@/components/Dashboard';
 import Members from '@/components/Members';
 import Shops from '@/components/Shops';
-import History from '@/components/History';
-import Summary from '@/components/Summary';
+import HistorySummary from '@/components/HistorySummary';
 import SettingsPage from '@/components/SettingsPanel';
 import FCMInitializer from '@/components/FCMInitializer';
 import Toast from '@/components/Toast';
@@ -96,8 +95,7 @@ export default function Home() {
         {page === 'dashboard' && <Dashboard showToast={showToast} />}
         {page === 'members' && <Members showToast={showToast} />}
         {page === 'shops' && <Shops showToast={showToast} />}
-        {page === 'history' && <History showToast={showToast} />}
-        {page === 'summary' && <Summary showToast={showToast} />}
+        {page === 'history' && <HistorySummary showToast={showToast} />}
         {page === 'settings' && <SettingsPage showToast={showToast} />}
       </main>
       <FCMInitializer showToast={showToast} />
