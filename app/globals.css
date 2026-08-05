@@ -1094,6 +1094,57 @@ body {
   box-shadow: 0 0 0 3px rgba(91, 74, 63, 0.1);
 }
 
+.form-group textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 16px;
+  font-family: inherit;
+  resize: vertical;
+  transition: var(--transition);
+}
+
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(91, 74, 63, 0.1);
+}
+
+/* 이메일 발송 모달 선택 옵션 */
+.email-mode-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.email-option-btn {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--card-bg);
+  text-align: left;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.email-option-btn:hover {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(91, 74, 63, 0.1);
+}
+
+.email-option-btn strong {
+  font-size: 15px;
+}
+
+.email-option-btn span {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
 .form-group input[type="color"] {
   height: 42px;
   padding: 4px;

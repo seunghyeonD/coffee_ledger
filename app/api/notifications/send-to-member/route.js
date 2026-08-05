@@ -7,7 +7,10 @@ const DEFAULT_THRESHOLD = 5000;
 
 export async function POST(request) {
   try {
-    const { companyId, memberId, memberName, balance, autoTriggered } = await request.json();
+    const {
+      companyId, memberId, memberName, balance, autoTriggered, channel,
+      title: customTitle, body: customBody,
+    } = await request.json();
 
     if (!companyId || !memberName) {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
@@ -34,6 +37,23 @@ export async function POST(request) {
       return Response.json({ error: 'autoTriggered must be a boolean' }, { status: 400 });
     }
 
+    // channel 미지정 시 푸시+이메일 모두 발송
+    if (channel !== undefined && !['push', 'email'].includes(channel)) {
+      return Response.json({ error: 'channel must be push or email' }, { status: 400 });
+    }
+    const usePush = channel !== 'email';
+    const useEmail = channel !== 'push';
+
+    // 직접 입력 메시지 (제목/내용 모두 있을 때만 기본 문구 대체)
+    if (customTitle !== undefined) {
+      const err = validateString(customTitle, 'title', 200);
+      if (err) return Response.json({ error: err }, { status: 400 });
+    }
+    if (customBody !== undefined) {
+      const err = validateString(customBody, 'body', 1000);
+      if (err) return Response.json({ error: err }, { status: 400 });
+    }
+
     // 인증 + 기업 소속 확인
     const { error: authError } = await verifyAuth(request, companyId);
     if (authError) return authError;
@@ -42,7 +62,7 @@ export async function POST(request) {
 
     // 장부 멤버에 등록된 이메일 조회 (계정 가입 없이도 직접 발송 가능)
     let memberEmail = null;
-    if (memberId !== undefined) {
+    if (useEmail && memberId !== undefined) {
       const { data: memberRow } = await supabase
         .from('members')
         .select('email')
@@ -96,10 +116,12 @@ export async function POST(request) {
         );
     }
 
-    const emailUserIds = filteredUserIds.filter(id => prefMap.get(id)?.email_enabled !== false);
+    const emailUserIds = useEmail
+      ? filteredUserIds.filter(id => prefMap.get(id)?.email_enabled !== false)
+      : [];
 
     // 매칭된 유저들의 FCM 토큰 조회
-    const { data: tokenRows } = filteredUserIds.length > 0
+    const { data: tokenRows } = usePush && filteredUserIds.length > 0
       ? await supabase
           .from('fcm_tokens')
           .select('token')
@@ -116,8 +138,11 @@ export async function POST(request) {
     }
 
     const balanceText = Number(balance).toLocaleString();
-    const title = '충전 요청';
-    const body = `${String(memberName)}님, 현재 잔액이 ${balanceText}원입니다. 커피비 충전을 부탁드립니다.`;
+    const hasCustom = Boolean(customTitle?.trim() && customBody?.trim());
+    const title = hasCustom ? customTitle.trim() : '충전 요청';
+    const body = hasCustom
+      ? customBody.trim()
+      : `${String(memberName)}님, 현재 잔액이 ${balanceText}원입니다. 커피비 충전을 부탁드립니다.`;
 
     let successCount = 0;
     if (tokens.length > 0) {
