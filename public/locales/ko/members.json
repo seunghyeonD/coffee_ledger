@@ -15,6 +15,8 @@
   "depositMonth": "충전 월",
   "depositTitle": "충전금 입금",
   "editMember": "멤버 수정",
+  "emailLabel": "이메일 (선택)",
+  "emailPlaceholder": "예: user@example.com",
   "initialBalance": "초기 잔액 (원)",
   "memberAdded": "멤버가 추가되었습니다!",
   "memberDeleted": "멤버가 삭제되었습니다.",
@@ -26,6 +28,6 @@
   "notificationSent": "{{name}}님에게 충전 요청 알림을 보냈습니다.",
   "sendChargeNotification": "충전 요청 알림 보내기",
   "title": "멤버 관리",
-  "userNoNotification": "매칭된 유저가 알림을 등록하지 않았습니다.",
-  "userNotFound": "{{name}}'과 일치하는 유저를 찾지 못했습니다. 설정 > 역할 관리에서 유저 이름을 확인해주세요."
+  "userNoNotification": "받을 수 있는 알림 수단이 없습니다. 멤버 수정에서 이메일을 등록해주세요.",
+  "userNotFound": "{{name}}'과 일치하는 유저가 없고 등록된 이메일도 없습니다. 멤버 수정에서 이메일을 등록해주세요."
 }

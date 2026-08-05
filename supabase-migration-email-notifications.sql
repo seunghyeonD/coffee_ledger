@@ -10,3 +10,7 @@ ALTER TABLE notification_preferences
   ALTER COLUMN email_enabled SET DEFAULT true;
 
 UPDATE notification_preferences SET email_enabled = true WHERE email_enabled = false;
+
+-- 장부 멤버에 이메일 등록 (계정 가입 없이도 충전 요청 메일 직접 발송)
+ALTER TABLE members
+  ADD COLUMN IF NOT EXISTS email text;

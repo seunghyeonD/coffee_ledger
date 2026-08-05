@@ -21,10 +21,10 @@ export default function Members({ showToast }) {
     e.preventDefault();
     try {
       if (memberModal.id) {
-        await updateMember(memberModal.id, memberModal.name);
+        await updateMember(memberModal.id, memberModal.name, memberModal.email);
         showToast(t('memberEdited'));
       } else {
-        await addMember(memberModal.name, memberModal.balance || 0);
+        await addMember(memberModal.name, memberModal.balance || 0, memberModal.email);
         showToast(t('memberAdded'));
       }
       setMemberModal(null);
@@ -74,17 +74,18 @@ export default function Members({ showToast }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           companyId,
+          memberId: member.id,
           memberName: member.name,
           balance,
         }),
       });
       const result = await res.json();
-      if (result.matched === 0) {
-        showToast(t('userNotFound', { name: member.name }));
-      } else if (result.sent === 0) {
-        showToast(t('userNoNotification'));
-      } else {
+      if (result.sent > 0 || result.emailed > 0) {
         showToast(t('notificationSent', { name: member.name }));
+      } else if (result.matched === 0) {
+        showToast(t('userNotFound', { name: member.name }));
+      } else {
+        showToast(t('userNoNotification'));
       }
     } catch (e) {
       showToast(t('notificationFailed'));
@@ -101,7 +102,7 @@ export default function Members({ showToast }) {
       <div className="page-header">
         <h1>{t('title')}</h1>
         {canDo(userRole, 'addMember') && (
-          <button className="btn btn-primary" onClick={() => setMemberModal({ name: '', balance: 0 })}>
+          <button className="btn btn-primary" onClick={() => setMemberModal({ name: '', email: '', balance: 0 })}>
             {t('addMember')}
           </button>
         )}
@@ -117,7 +118,7 @@ export default function Members({ showToast }) {
                 <div className="member-name">{m.name}</div>
                 {canDo(userRole, 'updateMember') && (
                   <div className="member-actions">
-                    <button className="btn btn-sm" onClick={() => setMemberModal({ id: m.id, name: m.name, balance: m.initial_balance || 0 })}>{t('common:edit')}</button>
+                    <button className="btn btn-sm" onClick={() => setMemberModal({ id: m.id, name: m.name, email: m.email || '', balance: m.initial_balance || 0 })}>{t('common:edit')}</button>
                     <button className="btn btn-sm text-danger" onClick={() => handleDeleteMember(m)}>{t('common:delete')}</button>
                   </div>
                 )}
@@ -182,6 +183,15 @@ export default function Members({ showToast }) {
                 onChange={e => setMemberModal({ ...memberModal, name: e.target.value })}
                 placeholder={t('namePlaceholder')}
                 required
+              />
+            </div>
+            <div className="form-group">
+              <label>{t('emailLabel')}</label>
+              <input
+                type="email"
+                value={memberModal.email || ''}
+                onChange={e => setMemberModal({ ...memberModal, email: e.target.value })}
+                placeholder={t('emailPlaceholder')}
               />
             </div>
             {!memberModal.id && (

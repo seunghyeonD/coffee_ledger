@@ -3,9 +3,11 @@ import { getSupabaseAdmin } from '@/lib/supabase-admin';
 import { verifyAuth, validateString, isValidUUID } from '@/lib/api-auth';
 import { getUserEmails, sendNotificationEmails } from '@/lib/email';
 
+const DEFAULT_THRESHOLD = 5000;
+
 export async function POST(request) {
   try {
-    const { companyId, memberName, balance, autoTriggered } = await request.json();
+    const { companyId, memberId, memberName, balance, autoTriggered } = await request.json();
 
     if (!companyId || !memberName) {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
@@ -18,6 +20,10 @@ export async function POST(request) {
     const nameErr = validateString(memberName, 'memberName', 100);
     if (nameErr) {
       return Response.json({ error: nameErr }, { status: 400 });
+    }
+
+    if (memberId !== undefined && !Number.isInteger(memberId)) {
+      return Response.json({ error: 'memberId must be an integer' }, { status: 400 });
     }
 
     if (balance !== undefined && (typeof balance !== 'number' || !isFinite(balance))) {
@@ -34,6 +40,23 @@ export async function POST(request) {
 
     const supabase = getSupabaseAdmin();
 
+    // 장부 멤버에 등록된 이메일 조회 (계정 가입 없이도 직접 발송 가능)
+    let memberEmail = null;
+    if (memberId !== undefined) {
+      const { data: memberRow } = await supabase
+        .from('members')
+        .select('email')
+        .eq('company_id', companyId)
+        .eq('id', memberId)
+        .maybeSingle();
+      memberEmail = memberRow?.email?.trim() || null;
+    }
+
+    // 자동 발송 시 멤버 직접 이메일은 기본 임계값 적용
+    if (autoTriggered && balance !== undefined && balance >= DEFAULT_THRESHOLD) {
+      memberEmail = null;
+    }
+
     // user_companies에서 name이 memberName을 포함하거나 일치하는 유저 찾기
     const { data: ucData } = await supabase
       .from('user_companies')
@@ -41,12 +64,7 @@ export async function POST(request) {
       .eq('company_id', companyId)
       .not('name', 'eq', '');
 
-    if (!ucData || ucData.length === 0) {
-      return Response.json({ sent: 0, matched: 0, reason: 'no_users_with_names' });
-    }
-
-    // 이름 매칭
-    const matchedUserIds = ucData
+    const matchedUserIds = (ucData || [])
       .filter(uc => {
         const ucName = uc.name.trim().toLowerCase();
         const mName = memberName.trim().toLowerCase();
@@ -54,53 +72,47 @@ export async function POST(request) {
       })
       .map(uc => uc.user_id);
 
-    if (matchedUserIds.length === 0) {
-      return Response.json({ sent: 0, matched: 0, reason: 'no_match' });
-    }
-
     // 매칭된 유저들의 알림 설정 조회
     // 설정 행이 없는 유저는 기본값(모두 켜짐)으로 간주 — 옵트아웃 방식
-    const { data: prefs } = await supabase
-      .from('notification_preferences')
-      .select('user_id, low_balance_enabled, low_balance_threshold, email_enabled')
-      .eq('company_id', companyId)
-      .in('user_id', matchedUserIds);
+    const { data: prefs } = matchedUserIds.length > 0
+      ? await supabase
+          .from('notification_preferences')
+          .select('user_id, low_balance_enabled, low_balance_threshold, email_enabled')
+          .eq('company_id', companyId)
+          .in('user_id', matchedUserIds)
+      : { data: [] };
 
     const prefMap = new Map((prefs || []).map(p => [p.user_id, p]));
 
     // 자동 발송인 경우: 본인이 잔액 부족 알림을 꺼놨는지 + 임계값 확인
     let filteredUserIds = matchedUserIds;
     if (autoTriggered) {
-      const enabledUserIds = matchedUserIds.filter(id => prefMap.get(id)?.low_balance_enabled !== false);
-
-      if (enabledUserIds.length === 0) {
-        return Response.json({ sent: 0, matched: matchedUserIds.length, reason: 'noti_disabled' });
-      }
-
-      // 임계값 체크
-      filteredUserIds = enabledUserIds.filter(id =>
-        balance !== undefined ? balance < (prefMap.get(id)?.low_balance_threshold || 5000) : true
-      );
-
-      if (filteredUserIds.length === 0) {
-        return Response.json({ sent: 0, matched: matchedUserIds.length, reason: 'above_threshold' });
-      }
+      filteredUserIds = matchedUserIds
+        .filter(id => prefMap.get(id)?.low_balance_enabled !== false)
+        .filter(id =>
+          balance !== undefined
+            ? balance < (prefMap.get(id)?.low_balance_threshold || DEFAULT_THRESHOLD)
+            : true
+        );
     }
 
     const emailUserIds = filteredUserIds.filter(id => prefMap.get(id)?.email_enabled !== false);
 
     // 매칭된 유저들의 FCM 토큰 조회
-    const { data: tokenRows } = await supabase
-      .from('fcm_tokens')
-      .select('token')
-      .eq('company_id', companyId)
-      .eq('enabled', true)
-      .in('user_id', filteredUserIds);
+    const { data: tokenRows } = filteredUserIds.length > 0
+      ? await supabase
+          .from('fcm_tokens')
+          .select('token')
+          .eq('company_id', companyId)
+          .eq('enabled', true)
+          .in('user_id', filteredUserIds)
+      : { data: [] };
 
     const tokens = (tokenRows || []).map(r => r.token);
 
-    if (tokens.length === 0 && emailUserIds.length === 0) {
-      return Response.json({ sent: 0, matched: matchedUserIds.length, reason: 'no_tokens' });
+    if (tokens.length === 0 && emailUserIds.length === 0 && !memberEmail) {
+      const reason = matchedUserIds.length === 0 ? 'no_match' : 'no_tokens';
+      return Response.json({ sent: 0, matched: matchedUserIds.length, emailed: 0, reason });
     }
 
     const balanceText = Number(balance).toLocaleString();
@@ -128,9 +140,11 @@ export async function POST(request) {
       }
     }
 
+    // 계정 이메일 + 멤버 직접 이메일 합산 (중복 제거)
     let emailed = 0;
-    if (emailUserIds.length > 0) {
-      const emails = await getUserEmails(emailUserIds);
+    const accountEmails = emailUserIds.length > 0 ? await getUserEmails(emailUserIds) : [];
+    const emails = [...new Set([...accountEmails, ...(memberEmail ? [memberEmail] : [])])];
+    if (emails.length > 0) {
       emailed = await sendNotificationEmails(emails, title, body);
     }
 

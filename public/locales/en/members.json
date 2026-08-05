@@ -15,6 +15,8 @@
   "depositMonth": "Deposit Month",
   "depositTitle": "Make Deposit",
   "editMember": "Edit Member",
+  "emailLabel": "Email (optional)",
+  "emailPlaceholder": "e.g. user@example.com",
   "initialBalance": "Initial Balance (KRW)",
   "memberAdded": "Member added!",
   "memberDeleted": "Member deleted.",
@@ -26,6 +28,6 @@
   "notificationSent": "Charge request notification sent to {{name}}.",
   "sendChargeNotification": "Send charge request notification",
   "title": "Members",
-  "userNoNotification": "Matched user has not registered for notifications.",
-  "userNotFound": "No user matching '{{name}}' found. Check the name in Settings > Role Management."
+  "userNoNotification": "No way to reach this member. Register an email in Edit Member.",
+  "userNotFound": "No user matching '{{name}}' and no registered email. Register an email in Edit Member."
 }
