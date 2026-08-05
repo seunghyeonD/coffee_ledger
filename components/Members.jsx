@@ -180,19 +180,21 @@ export default function Members({ showToast }) {
                 <div className="member-balance-label">{t('currentBalance')}</div>
                 <div className="member-balance-row">
                   <div className={`member-balance-value ${bal < 0 ? 'negative' : ''}`}>{formatMoney(bal)}</div>
-                  {bal <= 0 && canDo(userRole, 'sendMemberNotification') && (
+                  {canDo(userRole, 'sendMemberNotification') && (
                     <>
+                      {bal <= 0 && (
+                        <button
+                          className="member-noti-btn"
+                          onClick={() => handleSendChargeNotification(m, bal, 'push')}
+                          disabled={sendingNoti === `${m.id}-push`}
+                          title={t('sendChargeNotification')}
+                        >
+                          {sendingNoti === `${m.id}-push` ? '...' : '\uD83D\uDD14'}
+                        </button>
+                      )}
                       <button
                         className="member-noti-btn"
-                        onClick={() => handleSendChargeNotification(m, bal, 'push')}
-                        disabled={sendingNoti === `${m.id}-push`}
-                        title={t('sendChargeNotification')}
-                      >
-                        {sendingNoti === `${m.id}-push` ? '...' : '\uD83D\uDD14'}
-                      </button>
-                      <button
-                        className="member-noti-btn"
-                        onClick={() => setEmailModal({ member: m, balance: bal, mode: 'select', title: '', body: '' })}
+                        onClick={() => setEmailModal({ member: m, balance: bal, mode: bal <= 0 ? 'select' : 'custom', title: '', body: '' })}
                         disabled={sendingNoti === `${m.id}-email`}
                         title={t('sendChargeEmail')}
                       >
