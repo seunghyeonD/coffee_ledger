@@ -115,6 +115,35 @@ export default function Members({ showToast }) {
     }
   };
 
+  const handleSendInvite = async () => {
+    const { member } = emailModal;
+    setEmailModal(null);
+    setSendingNoti(`${member.id}-email`);
+    try {
+      const res = await authFetch('/api/members/invite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          companyId,
+          memberName: member.name,
+          email: member.email,
+        }),
+      });
+      const result = await res.json();
+      if (result.invited) {
+        showToast(t('inviteSent', { name: member.name }));
+      } else if (result.reason === 'already_member') {
+        showToast(t('inviteAlreadyMember', { name: member.name }));
+      } else {
+        showToast(t('notificationFailed'));
+      }
+    } catch (e) {
+      showToast(t('notificationFailed'));
+    } finally {
+      setSendingNoti(null);
+    }
+  };
+
   const handleSendCustomEmail = async (e) => {
     e.preventDefault();
     const { member, balance, title, body } = emailModal;
@@ -196,7 +225,7 @@ export default function Members({ showToast }) {
                       )}
                       <button
                         className="member-noti-btn"
-                        onClick={() => setEmailModal({ member: m, balance: bal, mode: bal <= 0 ? 'select' : 'custom', title: '', body: '' })}
+                        onClick={() => setEmailModal({ member: m, balance: bal, mode: (bal <= 0 || m.email) ? 'select' : 'custom', title: '', body: '' })}
                         disabled={sendingNoti === `${m.id}-email`}
                         title={t('sendChargeEmail')}
                       >
@@ -331,18 +360,20 @@ export default function Members({ showToast }) {
       >
         {emailModal && (emailModal.mode === 'select' ? (
           <div className="email-mode-options">
-            <button
-              type="button"
-              className="email-option-btn"
-              onClick={() => {
-                const { member, balance } = emailModal;
-                setEmailModal(null);
-                handleSendChargeNotification(member, balance, 'email');
-              }}
-            >
-              <strong>{t('emailOptionCharge')}</strong>
-              <span>{t('emailOptionChargeDesc')}</span>
-            </button>
+            {emailModal.balance <= 0 && (
+              <button
+                type="button"
+                className="email-option-btn"
+                onClick={() => {
+                  const { member, balance } = emailModal;
+                  setEmailModal(null);
+                  handleSendChargeNotification(member, balance, 'email');
+                }}
+              >
+                <strong>{t('emailOptionCharge')}</strong>
+                <span>{t('emailOptionChargeDesc')}</span>
+              </button>
+            )}
             <button
               type="button"
               className="email-option-btn"
@@ -351,6 +382,16 @@ export default function Members({ showToast }) {
               <strong>{t('emailOptionCustom')}</strong>
               <span>{t('emailOptionCustomDesc')}</span>
             </button>
+            {emailModal.member.email && (
+              <button
+                type="button"
+                className="email-option-btn"
+                onClick={handleSendInvite}
+              >
+                <strong>{t('emailOptionInvite')}</strong>
+                <span>{t('emailOptionInviteDesc')}</span>
+              </button>
+            )}
           </div>
         ) : (
           <form onSubmit={handleSendCustomEmail}>
