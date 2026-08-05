@@ -26,6 +26,8 @@
   "nameLabel": "이름",
   "namePlaceholder": "예: 김범석(Negan)",
   "notificationFailed": "알림 발송에 실패했습니다.",
+  "pushNoToken": "상대가 푸시 알림을 켜지 않아 보낼 수 없습니다. 이메일(📧)로 보내보세요.",
+  "pushUserNotFound": "{{name}}'과 일치하는 계정이 없어 푸시를 보낼 수 없습니다. 이메일(📧)로 보내보세요.",
   "notificationSent": "{{name}}님에게 충전 요청 알림을 보냈습니다.",
   "emailBodyLabel": "내용",
   "emailBodyPlaceholder": "예: 이번 달 커피비 충전 부탁드립니다.",

@@ -101,6 +101,8 @@ export default function Members({ showToast }) {
       const result = await res.json();
       if (result.sent > 0 || result.emailed > 0) {
         showToast(channel === 'email' ? t('emailSent', { name: member.name }) : t('notificationSent', { name: member.name }));
+      } else if (channel === 'push') {
+        showToast(result.matched === 0 ? t('pushUserNotFound', { name: member.name }) : t('pushNoToken'));
       } else if (result.matched === 0) {
         showToast(t('userNotFound', { name: member.name }));
       } else {
