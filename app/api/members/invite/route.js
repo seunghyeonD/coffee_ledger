@@ -25,8 +25,8 @@ export async function POST(request) {
       return Response.json({ error: 'Invalid email format' }, { status: 400 });
     }
 
-    // 인증 + 기업 소속 확인
-    const { error: authError } = await verifyAuth(request, companyId);
+    // 인증 + 기업 소속 확인 (초대는 관리자만)
+    const { error: authError } = await verifyAuth(request, companyId, { roles: ['master', 'admin'] });
     if (authError) return authError;
 
     const supabase = getSupabaseAdmin();

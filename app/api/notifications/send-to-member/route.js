@@ -54,26 +54,46 @@ export async function POST(request) {
       if (err) return Response.json({ error: err }, { status: 400 });
     }
 
-    // 인증 + 기업 소속 확인
-    const { error: authError } = await verifyAuth(request, companyId);
+    // 인증 + 기업 소속 확인 (수동 발송은 관리자만, 자동 발송은 기업 멤버 전체)
+    const { error: authError } = await verifyAuth(
+      request,
+      companyId,
+      autoTriggered ? {} : { roles: ['master', 'admin'] }
+    );
     if (authError) return authError;
 
     const supabase = getSupabaseAdmin();
 
-    // 장부 멤버에 등록된 이메일 조회 (계정 가입 없이도 직접 발송 가능)
+    // 멤버 정보 조회 + 잔액 서버 재계산 (클라이언트가 보낸 balance는 신뢰하지 않음)
     let memberEmail = null;
-    if (useEmail && memberId !== undefined) {
-      const { data: memberRow } = await supabase
-        .from('members')
-        .select('email')
-        .eq('company_id', companyId)
-        .eq('id', memberId)
-        .maybeSingle();
-      memberEmail = memberRow?.email?.trim() || null;
+    let effectiveBalance = balance;
+    if (memberId !== undefined) {
+      const [{ data: memberRow }, { data: depositRows }, { data: orderRows }] = await Promise.all([
+        supabase
+          .from('members')
+          .select('email, initial_balance')
+          .eq('company_id', companyId)
+          .eq('id', memberId)
+          .maybeSingle(),
+        supabase.from('deposits').select('amount').eq('member_id', memberId),
+        supabase.from('orders').select('price').eq('member_id', memberId),
+      ]);
+
+      if (!memberRow) {
+        return Response.json({ error: 'Member not found' }, { status: 404 });
+      }
+
+      if (useEmail) {
+        memberEmail = memberRow.email?.trim() || null;
+      }
+
+      const totalDeposit = (depositRows || []).reduce((s, d) => s + d.amount, 0);
+      const totalSpent = (orderRows || []).reduce((s, o) => s + o.price, 0);
+      effectiveBalance = (memberRow.initial_balance || 0) + totalDeposit - totalSpent;
     }
 
     // 자동 발송 시 멤버 직접 이메일은 기본 임계값 적용
-    if (autoTriggered && balance !== undefined && balance >= DEFAULT_THRESHOLD) {
+    if (autoTriggered && effectiveBalance !== undefined && effectiveBalance >= DEFAULT_THRESHOLD) {
       memberEmail = null;
     }
 
@@ -110,8 +130,8 @@ export async function POST(request) {
       filteredUserIds = matchedUserIds
         .filter(id => prefMap.get(id)?.low_balance_enabled !== false)
         .filter(id =>
-          balance !== undefined
-            ? balance < (prefMap.get(id)?.low_balance_threshold || DEFAULT_THRESHOLD)
+          effectiveBalance !== undefined
+            ? effectiveBalance < (prefMap.get(id)?.low_balance_threshold || DEFAULT_THRESHOLD)
             : true
         );
     }
@@ -137,7 +157,7 @@ export async function POST(request) {
       return Response.json({ sent: 0, matched: matchedUserIds.length, emailed: 0, reason });
     }
 
-    const balanceText = Number(balance).toLocaleString();
+    const balanceText = Number(effectiveBalance).toLocaleString();
     const hasCustom = Boolean(customTitle?.trim() && customBody?.trim());
     const title = hasCustom ? customTitle.trim() : '충전 요청';
     const body = hasCustom
