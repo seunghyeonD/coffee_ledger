@@ -154,7 +154,7 @@ export async function POST(request) {
     let emailed = 0;
     if (emailUserIds.length > 0) {
       const emails = await getUserEmails(emailUserIds);
-      emailed = await sendNotificationEmails(emails, notification.title, notification.body);
+      emailed = await sendNotificationEmails(emails, notification.title, notification.body, { companyId, type });
     }
 
     return Response.json({

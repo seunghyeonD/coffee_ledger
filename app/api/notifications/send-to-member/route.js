@@ -190,7 +190,10 @@ export async function POST(request) {
     const accountEmails = emailUserIds.length > 0 ? await getUserEmails(emailUserIds) : [];
     const emails = [...new Set([...accountEmails, ...(memberEmail ? [memberEmail] : [])])];
     if (emails.length > 0) {
-      emailed = await sendNotificationEmails(emails, title, body);
+      emailed = await sendNotificationEmails(emails, title, body, {
+        companyId,
+        type: hasCustom ? 'custom' : 'charge_request',
+      });
     }
 
     return Response.json({

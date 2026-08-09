@@ -61,7 +61,7 @@ export async function POST(request) {
     const title = `'${company.name}' 커피 대장부 초대`;
     const body = `${String(memberName)}님, '${company.name}' 커피 대장부에 초대되었습니다.\n\n아래 주소에서 회원가입 후 초대 코드를 입력하면 참여할 수 있습니다.\n\n초대 코드: ${company.invite_code}\n주소: ${origin}`;
 
-    const emailed = await sendNotificationEmails([targetEmail], title, body);
+    const emailed = await sendNotificationEmails([targetEmail], title, body, { companyId, type: 'invite' });
 
     return Response.json({ invited: emailed > 0 });
   } catch (error) {
