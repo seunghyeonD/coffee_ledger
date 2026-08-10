@@ -19,6 +19,7 @@ export default function NotificationSettings({ showToast, embedded = false }) {
   const isAdmin = userRole === 'master' || userRole === 'admin';
   const [enabled, setEnabled] = useState(false);
   const [emailEnabled, setEmailEnabled] = useState(true);
+  const [orderEmailEnabled, setOrderEmailEnabled] = useState(false);
   const [orderEnabled, setOrderEnabled] = useState(true);
   const [lowBalanceEnabled, setLowBalanceEnabled] = useState(true);
   const [threshold, setThreshold] = useState(5000);
@@ -42,6 +43,7 @@ export default function NotificationSettings({ showToast, embedded = false }) {
       setEnabled(tokenStatus?.enabled ?? false);
       if (prefs) {
         setEmailEnabled(prefs.email_enabled ?? true);
+        setOrderEmailEnabled(prefs.order_email_enabled ?? false);
         setOrderEnabled(prefs.order_registered_enabled ?? true);
         setLowBalanceEnabled(prefs.low_balance_enabled ?? true);
         setThreshold(prefs.low_balance_threshold ?? 5000);
@@ -73,6 +75,7 @@ export default function NotificationSettings({ showToast, embedded = false }) {
     try {
       await upsertNotificationPreferences(user.id, companyId, {
         email_enabled: emailEnabled,
+        order_email_enabled: orderEmailEnabled,
         order_registered_enabled: orderEnabled,
         low_balance_enabled: lowBalanceEnabled,
         low_balance_threshold: threshold,
@@ -88,6 +91,13 @@ export default function NotificationSettings({ showToast, embedded = false }) {
     setEmailEnabled(newVal);
     await savePreferences({ email_enabled: newVal });
     showToast(newVal ? t('notification.emailEnabled') : t('notification.emailDisabled'));
+  };
+
+  const handleOrderEmailToggle = async () => {
+    const newVal = !orderEmailEnabled;
+    setOrderEmailEnabled(newVal);
+    await savePreferences({ order_email_enabled: newVal });
+    showToast(newVal ? t('notification.orderEmailEnabled') : t('notification.orderEmailDisabled'));
   };
 
   const handleOrderToggle = async () => {
@@ -157,6 +167,21 @@ export default function NotificationSettings({ showToast, embedded = false }) {
             <span className="toggle-knob" />
           </button>
         </div>
+
+        {emailEnabled && (
+          <div className="notification-row">
+            <div>
+              <strong>{t('notification.orderEmail')}</strong>
+              <p className="notification-desc">{t('notification.orderEmailDesc')}</p>
+            </div>
+            <button
+              className={`toggle-btn ${orderEmailEnabled ? 'active' : ''}`}
+              onClick={handleOrderEmailToggle}
+            >
+              <span className="toggle-knob" />
+            </button>
+          </div>
+        )}
 
         {(enabled || emailEnabled) && (
           <>

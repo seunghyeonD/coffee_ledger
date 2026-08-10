@@ -32,3 +32,7 @@ CREATE INDEX IF NOT EXISTS email_logs_company_created_idx
 
 -- 정책 없이 RLS만 켜서 클라이언트 접근 차단 (서버의 service role만 읽기/쓰기)
 ALTER TABLE email_logs ENABLE ROW LEVEL SECURITY;
+
+-- 주문 등록 이메일은 발송량이 많아 기본 꺼짐 (원하는 유저만 옵트인)
+ALTER TABLE notification_preferences
+  ADD COLUMN IF NOT EXISTS order_email_enabled boolean NOT NULL DEFAULT false;

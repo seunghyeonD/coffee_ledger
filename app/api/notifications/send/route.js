@@ -70,7 +70,7 @@ export async function POST(request) {
         .eq('company_id', companyId),
       supabase
         .from('notification_preferences')
-        .select('user_id, order_registered_enabled, low_balance_enabled, low_balance_threshold, email_enabled')
+        .select('user_id, order_registered_enabled, low_balance_enabled, low_balance_threshold, email_enabled, order_email_enabled')
         .eq('company_id', companyId),
     ]);
 
@@ -105,7 +105,13 @@ export async function POST(request) {
       return Response.json({ sent: 0, emailed: 0 });
     }
 
-    const emailUserIds = targetUserIds.filter(id => prefMap.get(id)?.email_enabled !== false);
+    const emailUserIds = targetUserIds.filter(id => {
+      const pref = prefMap.get(id);
+      if (pref?.email_enabled === false) return false;
+      // 주문 등록 이메일은 발송량이 많아 명시적으로 켠 유저에게만 (기본 꺼짐)
+      if (type === 'order_registered') return pref?.order_email_enabled === true;
+      return true;
+    });
 
     const { data: tokenRows } = await supabase
       .from('fcm_tokens')
