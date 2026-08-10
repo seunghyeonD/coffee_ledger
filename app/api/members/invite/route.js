@@ -57,7 +57,10 @@ export async function POST(request) {
       return Response.json({ error: 'Company not found' }, { status: 404 });
     }
 
-    const origin = request.headers.get('origin') || 'https://coffeeledger.co.kr';
+    // 초대 링크는 env 고정값 우선 (origin 헤더는 조작 가능하므로 fallback으로만)
+    const origin = process.env.NEXT_PUBLIC_SITE_URL
+      || request.headers.get('origin')
+      || 'https://coffeeledger.co.kr';
     const title = `'${company.name}' 커피 대장부 초대`;
     const body = `${String(memberName)}님, '${company.name}' 커피 대장부에 초대되었습니다.\n\n아래 주소에서 회원가입 후 초대 코드를 입력하면 참여할 수 있습니다.\n\n초대 코드: ${company.invite_code}\n주소: ${origin}`;
 

@@ -199,7 +199,14 @@ export default function Members({ showToast }) {
           return (
             <div key={m.id} className="member-card">
               <div className="member-card-header">
-                <div className="member-name">{m.name}</div>
+                <div>
+                  <div className="member-name">{m.name}</div>
+                  {canDo(userRole, 'updateMember') && (
+                    <div className={`member-email ${m.email ? '' : 'member-email-missing'}`}>
+                      {m.email || t('noEmail')}
+                    </div>
+                  )}
+                </div>
                 {canDo(userRole, 'updateMember') && (
                   <div className="member-actions">
                     <button className="btn btn-sm" onClick={() => setMemberModal({ id: m.id, name: m.name, email: m.email || '', balance: m.initial_balance || 0 })}>{t('common:edit')}</button>

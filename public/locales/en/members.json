@@ -24,6 +24,7 @@
   "memberEdited": "Member updated.",
   "memberLabel": "Member",
   "nameLabel": "Name",
+  "noEmail": "No email registered",
   "namePlaceholder": "e.g. John Doe",
   "notificationFailed": "Failed to send notification.",
   "pushNoToken": "The matched user hasn't enabled push notifications. Try email (📧) instead.",

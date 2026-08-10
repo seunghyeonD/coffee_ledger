@@ -24,6 +24,7 @@
   "memberEdited": "멤버가 수정되었습니다.",
   "memberLabel": "멤버",
   "nameLabel": "이름",
+  "noEmail": "이메일 미등록",
   "namePlaceholder": "예: 김범석(Negan)",
   "notificationFailed": "알림 발송에 실패했습니다.",
   "pushNoToken": "상대가 푸시 알림을 켜지 않아 보낼 수 없습니다. 이메일(📧)로 보내보세요.",

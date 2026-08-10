@@ -1111,6 +1111,17 @@ body {
   box-shadow: 0 0 0 3px rgba(91, 74, 63, 0.1);
 }
 
+.member-email {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+  word-break: break-all;
+}
+
+.member-email-missing {
+  opacity: 0.6;
+}
+
 /* 이메일 발송 모달 선택 옵션 */
 .email-mode-options {
   display: flex;
