@@ -175,16 +175,17 @@ export default function LoginPage() {
     <div className="auth-page">
       <div className="auth-card">
         <div className="auth-card-body">
-        <div className="auth-logo"><span className="auth-logo-mark">{'\u2615'}</span><span>{t('common:appName')}</span></div>
-
         {mode === 'login' ? (
-          <p className="auth-tagline">{t('tagline')}</p>
+          <img src="/login-logo.png" alt={t('common:appName')} className="auth-logo-img" />
         ) : (
-          <h2 className="auth-title">
-            {mode === 'signup'
-              ? (signUpStep === 2 ? t('emailVerification') : t('signup'))
-              : t('resetPassword')}
-          </h2>
+          <>
+            <div className="auth-logo"><span className="auth-logo-mark">{'\u2615'}</span><span>{t('common:appName')}</span></div>
+            <h2 className="auth-title">
+              {mode === 'signup'
+                ? (signUpStep === 2 ? t('emailVerification') : t('signup'))
+                : t('resetPassword')}
+            </h2>
+          </>
         )}
 
         {mode === 'forgot' && (
