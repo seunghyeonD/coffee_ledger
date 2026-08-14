@@ -184,7 +184,10 @@ export default function Members({ showToast }) {
   return (
     <>
       <div className="page-header">
-        <h1>{t('title')}</h1>
+        <div>
+          <h1>{t('title')}</h1>
+          <p className="page-subtitle">{t('subtitle')}</p>
+        </div>
         {canDo(userRole, 'addMember') && (
           <button className="btn btn-primary" onClick={() => setMemberModal({ name: '', email: '', balance: 0 })}>
             {t('addMember')}
@@ -209,8 +212,24 @@ export default function Members({ showToast }) {
                 </div>
                 {canDo(userRole, 'updateMember') && (
                   <div className="member-actions">
-                    <button className="btn btn-sm" onClick={() => setMemberModal({ id: m.id, name: m.name, email: m.email || '', balance: m.initial_balance || 0 })}>{t('common:edit')}</button>
-                    <button className="btn btn-sm text-danger" onClick={() => handleDeleteMember(m)}>{t('common:delete')}</button>
+                    <button
+                      className="menu-icon-btn edit"
+                      title={t('common:edit')}
+                      onClick={() => setMemberModal({ id: m.id, name: m.name, email: m.email || '', balance: m.initial_balance || 0 })}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+                      </svg>
+                    </button>
+                    <button
+                      className="menu-icon-btn del"
+                      title={t('common:delete')}
+                      onClick={() => handleDeleteMember(m)}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M3 6h18" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                      </svg>
+                    </button>
                   </div>
                 )}
               </div>
@@ -244,7 +263,7 @@ export default function Members({ showToast }) {
               </div>
               <div className="member-deposits">
                 <strong>{t('depositHistory')}</strong>
-                <div>
+                <div className="deposit-list">
                   {deps.length === 0 ? (
                     <div style={{ color: 'var(--text-secondary)', fontSize: 12 }}>{t('common:none')}</div>
                   ) : (

@@ -3633,3 +3633,151 @@ a:focus-visible {
     max-height: 300px;
   }
 }
+
+/* ===== 멤버 관리 리디자인 (레퍼런스 시안 반영) ===== */
+.member-card .member-name {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.member-card .member-email {
+  margin-top: 1px;
+}
+
+.member-balance-label {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  margin-top: 10px;
+}
+
+.member-balance-value {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 잔액 옆 알림 버튼 — 원형 아이콘 */
+.member-noti-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition);
+  margin-left: 8px;
+}
+
+.member-noti-btn:hover {
+  border-color: var(--primary-light);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(58, 38, 21, 0.12);
+}
+
+.member-noti-btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+/* 충전 내역: 구분선 + 내부 스크롤 */
+.member-deposits {
+  border-top: 1px solid #efe6d5;
+  margin-top: 14px;
+  padding-top: 12px;
+}
+
+.member-deposits > strong {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 600;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.deposit-list {
+  max-height: 170px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 6px;
+  margin-right: -6px;
+}
+
+.deposit-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.deposit-list::-webkit-scrollbar-thumb {
+  background: #d9c9ae;
+  border-radius: 999px;
+}
+
+.deposit-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 2px;
+  border-bottom: 1px solid #f2ead9;
+  font-size: 13px;
+}
+
+.deposit-item:last-child {
+  border-bottom: none;
+}
+
+.deposit-item > span:first-child {
+  color: var(--text-secondary);
+  flex: 1;
+}
+
+.deposit-amount {
+  color: var(--success);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.deposit-delete {
+  width: 22px;
+  height: 22px;
+  border: none;
+  background: none;
+  color: #b8a68d;
+  font-size: 15px;
+  cursor: pointer;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+}
+
+.deposit-delete:hover {
+  color: var(--danger);
+  background: rgba(196, 85, 77, 0.08);
+}
+
+/* + 충전 — 하단 고정 풀너비, 그린 틴트 */
+.member-deposit-btn {
+  width: 100%;
+  margin-top: 12px;
+  padding: 11px;
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: 12px;
+  background: rgba(78, 138, 93, 0.08);
+  border: 1px solid rgba(78, 138, 93, 0.35);
+  color: var(--success);
+  box-shadow: none;
+  justify-content: center;
+}
+
+.member-deposit-btn:hover {
+  background: rgba(78, 138, 93, 0.15);
+  border-color: var(--success);
+  transform: none;
+  box-shadow: none;
+}
