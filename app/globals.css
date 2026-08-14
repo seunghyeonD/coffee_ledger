@@ -3608,3 +3608,28 @@ a:focus-visible {
   margin: 4px auto 20px;
   mix-blend-mode: multiply;
 }
+
+/* 메뉴 목록만 내부 스크롤 — 추가/일괄 등록 버튼은 카드 하단 고정 */
+.shop-menu-list {
+  overflow-y: auto;
+  max-height: 340px;
+  overscroll-behavior: contain;
+  padding-right: 6px;
+  margin-right: -6px;
+}
+
+.shop-menu-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.shop-menu-list::-webkit-scrollbar-thumb {
+  background: #d9c9ae;
+  border-radius: 999px;
+}
+
+/* 모바일에서는 화면이 좁으니 스크롤 영역을 조금 낮게 */
+@media (max-width: 480px) {
+  .shop-menu-list {
+    max-height: 300px;
+  }
+}
