@@ -3135,3 +3135,171 @@ a:focus-visible {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ===== 로그인 카드 리파인 (레퍼런스 시안 반영) ===== */
+.auth-page {
+  flex-direction: column;
+  gap: 22px;
+}
+
+.auth-tagline {
+  text-align: center;
+  font-size: 14px;
+  color: var(--primary-light);
+  margin: -6px 0 26px;
+}
+
+/* 아이콘 인라인 입력창 */
+.auth-input {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.auth-input-icon {
+  position: absolute;
+  left: 15px;
+  color: #a08a71;
+  pointer-events: none;
+}
+
+.auth-input input {
+  width: 100%;
+  padding: 13px 46px 13px 44px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fffdf7;
+  transition: var(--transition);
+}
+
+.auth-input input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(176, 113, 58, 0.16);
+}
+
+.auth-eye {
+  position: absolute;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  background: none;
+  border: none;
+  border-radius: 50%;
+  color: #a08a71;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.auth-eye:hover {
+  color: var(--primary);
+  background: rgba(74, 47, 31, 0.06);
+}
+
+/* 아이디 저장 / 비밀번호 찾기 행 */
+.auth-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 4px 0 10px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.auth-remember {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.auth-remember input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+.auth-find-pw {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.auth-find-pw:hover {
+  color: var(--primary);
+  text-decoration: underline;
+}
+
+/* "또는" 구분선 */
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 20px 0 16px;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* 아웃라인 회원가입 버튼 */
+.auth-outline-btn {
+  width: 100%;
+  padding: 13px;
+  background: transparent;
+  border: 1.5px solid var(--primary);
+  border-radius: 12px;
+  color: var(--primary);
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.auth-outline-btn:hover {
+  background: rgba(74, 47, 31, 0.06);
+}
+
+/* 하단 카피라이트 */
+.auth-copyright {
+  font-size: 12.5px;
+  color: rgba(232, 216, 194, 0.55);
+  text-align: center;
+}
+
+/* 회원가입/비밀번호 찾기 화면의 전환 링크는 인라인 스타일로 복원 */
+.auth-switch {
+  display: block;
+}
+
+.auth-switch button {
+  width: auto;
+  padding: 0 2px;
+  background: none;
+  border: none;
+  border-radius: 0;
+  color: var(--primary);
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.auth-switch button:hover {
+  background: none;
+  text-decoration: underline;
+}

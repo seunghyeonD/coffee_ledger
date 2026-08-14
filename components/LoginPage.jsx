@@ -1,20 +1,36 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/lib/auth';
+
+const IconUser = () => (
+  <svg className="auth-input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
+  </svg>
+);
+
+const IconLock = () => (
+  <svg className="auth-input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
+  </svg>
+);
+
+const IconEye = ({ off }) => off ? (
+  <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+    <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+    <path d="M14.12 14.12a3 3 0 1 1-4.24-4.24" /><line x1="1" y1="1" x2="23" y2="23" />
+  </svg>
+) : (
+  <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" />
+  </svg>
+);
 
 export default function LoginPage() {
   const { t } = useTranslation(['auth', 'common', 'legal']);
   const { signIn, signUp, verifyOtp, resetPassword } = useAuth();
-
-  // 커피하우스 톤 온 톤 — 로스팅 단계처럼 명도만 달리한 브라운 그라데이션
-  const BANNERS = [
-    { text: t('heroTitle'), sub: t('feature1Title'), bg: 'linear-gradient(135deg, #33200f 0%, #5c4033 100%)' },
-    { text: t('feature2Title'), sub: t('feature2Desc'), bg: 'linear-gradient(135deg, #4a2f1f 0%, #7a5230 100%)' },
-    { text: t('feature3Title'), sub: t('feature3Desc'), bg: 'linear-gradient(135deg, #2e1c10 0%, #6b4a2b 100%)' },
-    { text: t('feature4Title'), sub: t('feature4Desc'), bg: 'linear-gradient(135deg, #5c4033 0%, #96703f 100%)' },
-  ];
 
   const [mode, setMode] = useState('login');
   const [email, setEmail] = useState('');
@@ -26,20 +42,23 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [signUpStep, setSignUpStep] = useState(1);
   const [resetDone, setResetDone] = useState(false);
-  const [bannerIdx, setBannerIdx] = useState(0);
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [agreePrivacy, setAgreePrivacy] = useState(false);
   const [showTerms, setShowTerms] = useState(null);
   const [resendTimer, setResendTimer] = useState(0);
+  const [showPw, setShowPw] = useState(false);
+  const [remember, setRemember] = useState(false);
 
-  const nextBanner = useCallback(() => {
-    setBannerIdx(prev => (prev + 1) % BANNERS.length);
-  }, []);
-
+  // 아이디 저장: 저장된 이메일이 있으면 자동 입력
   useEffect(() => {
-    const timer = setInterval(nextBanner, 4000);
-    return () => clearInterval(timer);
-  }, [nextBanner]);
+    try {
+      const saved = localStorage.getItem('savedEmail');
+      if (saved) {
+        setEmail(saved);
+        setRemember(true);
+      }
+    } catch {}
+  }, []);
 
   useEffect(() => {
     if (resendTimer <= 0) return;
@@ -63,6 +82,10 @@ export default function LoginPage() {
       setLoading(true);
       try {
         await signIn(email, password);
+        try {
+          if (remember) localStorage.setItem('savedEmail', email);
+          else localStorage.removeItem('savedEmail');
+        } catch {}
       } catch (err) {
         const msg = err.message || t('genericError');
         if (msg.includes('Invalid login')) setError(t('invalidCredentials'));
@@ -126,25 +149,10 @@ export default function LoginPage() {
     } finally { setLoading(false); }
   };
 
-  const bannerCarousel = (
-    <div className="auth-banner">
-      <div className="auth-banner-slide" style={{ background: BANNERS[bannerIdx].bg }} key={bannerIdx}>
-        <div className="auth-banner-text">{BANNERS[bannerIdx].text}</div>
-        <div className="auth-banner-sub">{BANNERS[bannerIdx].sub}</div>
-      </div>
-      <div className="auth-banner-dots">
-        {BANNERS.map((_, i) => (
-          <button key={i} className={`auth-banner-dot ${i === bannerIdx ? 'active' : ''}`} onClick={() => setBannerIdx(i)} />
-        ))}
-      </div>
-    </div>
-  );
-
   if (resetDone) {
     return (
       <div className="auth-page">
         <div className="auth-card">
-          {bannerCarousel}
           <div className="auth-card-body">
           <div className="auth-logo"><span className="auth-logo-mark">{'\u2615'}</span><span>{t('common:appName')}</span></div>
           <div className="auth-success">
@@ -166,14 +174,18 @@ export default function LoginPage() {
   return (
     <div className="auth-page">
       <div className="auth-card">
-        {bannerCarousel}
         <div className="auth-card-body">
         <div className="auth-logo"><span className="auth-logo-mark">{'\u2615'}</span><span>{t('common:appName')}</span></div>
-        <h2 className="auth-title">
-          {mode === 'signup'
-            ? (signUpStep === 2 ? t('emailVerification') : t('signup'))
-            : mode === 'forgot' ? t('resetPassword') : t('login')}
-        </h2>
+
+        {mode === 'login' ? (
+          <p className="auth-tagline">{t('tagline')}</p>
+        ) : (
+          <h2 className="auth-title">
+            {mode === 'signup'
+              ? (signUpStep === 2 ? t('emailVerification') : t('signup'))
+              : t('resetPassword')}
+          </h2>
+        )}
 
         {mode === 'forgot' && (
           <p className="auth-subtitle" style={{ whiteSpace: 'pre-line' }}>
@@ -207,6 +219,35 @@ export default function LoginPage() {
               <div className="auth-resend">
                 <button type="button" onClick={handleResendOtp} disabled={resendTimer > 0 || loading} className="auth-resend-btn">
                   {resendTimer > 0 ? t('resendTimer', { seconds: resendTimer }) : t('resendCode')}
+                </button>
+              </div>
+            </>
+          ) : mode === 'login' ? (
+            <>
+              <div className="auth-input">
+                <IconUser />
+                <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder={t('email')} required />
+              </div>
+              <div className="auth-input">
+                <IconLock />
+                <input
+                  type={showPw ? 'text' : 'password'}
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  placeholder={t('password')}
+                  required
+                />
+                <button type="button" className="auth-eye" onClick={() => setShowPw(!showPw)} aria-label={t('password')}>
+                  <IconEye off={showPw} />
+                </button>
+              </div>
+              <div className="auth-row">
+                <label className="auth-remember">
+                  <input type="checkbox" checked={remember} onChange={e => setRemember(e.target.checked)} />
+                  {t('rememberEmail')}
+                </label>
+                <button type="button" className="auth-find-pw" onClick={() => switchMode('forgot')}>
+                  {t('findPassword')}
                 </button>
               </div>
             </>
@@ -268,23 +309,26 @@ export default function LoginPage() {
           </button>
         </form>
 
-        {mode === 'login' && (
-          <button className="auth-forgot-btn" onClick={() => switchMode('forgot')}>
-            {t('forgotPassword')}
-          </button>
+        {mode === 'login' ? (
+          <>
+            <div className="auth-divider"><span>{t('or')}</span></div>
+            <button type="button" className="auth-outline-btn" onClick={() => switchMode('signup')}>
+              {t('signup')}
+            </button>
+          </>
+        ) : (
+          <div className="auth-switch">
+            {mode === 'signup' ? (
+              <span>{t('alreadyHaveAccount')} <button onClick={() => switchMode('login')}>{t('login')}</button></span>
+            ) : (
+              <span>{t('rememberPassword')} <button onClick={() => switchMode('login')}>{t('login')}</button></span>
+            )}
+          </div>
         )}
-
-        <div className="auth-switch">
-          {mode === 'signup' ? (
-            <span>{t('alreadyHaveAccount')} <button onClick={() => switchMode('login')}>{t('login')}</button></span>
-          ) : mode === 'forgot' ? (
-            <span>{t('rememberPassword')} <button onClick={() => switchMode('login')}>{t('login')}</button></span>
-          ) : (
-            <span>{t('noAccount')} <button onClick={() => switchMode('signup')}>{t('signup')}</button></span>
-          )}
-        </div>
         </div>
       </div>
+
+      <p className="auth-copyright">© 2026 {t('common:appName')}. All rights reserved.</p>
 
       {showTerms && (
         <div className="auth-terms-overlay" onClick={() => setShowTerms(null)}>
