@@ -12,27 +12,29 @@ const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const PER_MODEL_TIMEOUT_MS = 22000; // 모델당 최대 대기 시간
 
 const GEMINI_MODELS = ['gemini-flash-latest', 'gemini-flash-lite-latest'];
+// 실측 속도·정확도 순 (2026-08). 앞 모델이 혼잡하면 자동 폴백
 const OPENROUTER_MODELS = [
-  'google/gemma-4-31b-it:free',
-  'google/gemma-4-26b-a4b-it:free',
   'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free',
+  'nvidia/nemotron-nano-12b-v2-vl:free',
+  'google/gemma-4-26b-a4b-it:free',
+  'google/gemma-4-31b-it:free',
 ];
 
-const EXTRACT_PROMPT = `이 이미지는 카페/음식점 메뉴판입니다. 메뉴 이름과 가격을 추출해주세요.
+// 출력을 [이름, 가격] 쌍으로 압축 — 생성 토큰이 절반이라 혼잡한 무료 모델에서도 빠름
+const EXTRACT_PROMPT = `이 이미지는 카페/음식점 메뉴판입니다. 모든 메뉴 이름과 가격을 추출해주세요.
 
 규칙:
-- 가격은 원화 숫자로만
-- 한국 카페 메뉴판의 소수점 가격은 천원 단위 축약입니다: "4.5" → 4500, "6.0" → 6000, "10.5" → 10500
+- 소수점 가격은 천원 단위 축약: "4.5" → 4500, "6.0" → 6000, "10.5" → 10500
 - "4,500" 또는 "4500원" → 4500
-- HOT/ICE 가격이 다르면 별도 항목으로 (예: "아메리카노(ICE)")
-- 사이즈별 가격이 다르면 별도 항목으로 (예: "카페라떼(L)")
+- HOT/ICE, 사이즈별 가격이 다르면 별도 항목 (예: "아메리카노(ICE)")
 - 가격을 읽을 수 없는 메뉴는 제외
 - 메뉴가 아닌 텍스트(가게 이름, 안내 문구 등)는 제외
 
-다른 설명 없이 아래 형식의 JSON 배열만 출력하세요:
-[{"name": "아메리카노", "price": 4500}, {"name": "카페라떼", "price": 5000}]`;
+다른 설명 없이 아래처럼 [이름, 가격] 쌍의 JSON 배열만 출력:
+[["아메리카노",4500],["카페라떼",5000]]`;
 
 // 모델 응답 텍스트에서 JSON 배열 추출 (마크다운 펜스 등 잡음 제거)
+// [["이름", 가격], ...] 및 [{"name": ..., "price": ...}, ...] 두 형식 모두 지원
 function parseMenusFromText(text) {
   if (!text) return null;
   const start = text.indexOf('[');
@@ -40,7 +42,10 @@ function parseMenusFromText(text) {
   if (start === -1 || end === -1 || end <= start) return null;
   try {
     const parsed = JSON.parse(text.slice(start, end + 1));
-    return Array.isArray(parsed) ? parsed : null;
+    if (!Array.isArray(parsed)) return null;
+    return parsed.map(item =>
+      Array.isArray(item) ? { name: item[0], price: item[1] } : item
+    );
   } catch {
     return null;
   }
@@ -68,7 +73,7 @@ function cleanMenus(menus) {
     .filter(m => m.price > 0 && m.price < 10000000);
 }
 
-async function extractWithGemini(image, mimeType) {
+async function extractWithGemini(image, mimeType, deadline) {
   const body = {
     contents: [{
       parts: [
@@ -81,9 +86,9 @@ async function extractWithGemini(image, mimeType) {
 
   let rateLimited = false;
   for (const model of GEMINI_MODELS) {
-    let res;
+    if (Date.now() > deadline) break;
     try {
-      res = await fetch(
+      const res = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${process.env.GEMINI_API_KEY}`,
         {
           method: 'POST',
@@ -92,34 +97,34 @@ async function extractWithGemini(image, mimeType) {
           signal: AbortSignal.timeout(PER_MODEL_TIMEOUT_MS),
         }
       );
+
+      if (res.status === 429) {
+        rateLimited = true;
+        continue;
+      }
+      if (!res.ok) {
+        console.error('Gemini error:', model, res.status, (await res.text()).slice(0, 300));
+        continue;
+      }
+
+      // 본문 스트리밍도 타임아웃 대상이므로 try 안에서 읽는다
+      const data = await res.json();
+      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      const menus = parseMenusFromText(text);
+      if (menus) return { menus };
     } catch (e) {
       console.error('Gemini timeout/network:', model, e?.name);
-      continue;
     }
-
-    if (res.status === 429) {
-      rateLimited = true;
-      continue;
-    }
-    if (!res.ok) {
-      console.error('Gemini error:', model, res.status, (await res.text()).slice(0, 300));
-      continue;
-    }
-
-    const data = await res.json();
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    const menus = parseMenusFromText(text);
-    if (menus) return { menus };
   }
   return { failed: true, rateLimited };
 }
 
-async function extractWithOpenRouter(image, mimeType) {
+async function extractWithOpenRouter(image, mimeType, deadline) {
   let rateLimited = false;
   for (const model of OPENROUTER_MODELS) {
-    let res;
+    if (Date.now() > deadline) break;
     try {
-      res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
@@ -139,24 +144,24 @@ async function extractWithOpenRouter(image, mimeType) {
         }),
         signal: AbortSignal.timeout(PER_MODEL_TIMEOUT_MS),
       });
+
+      if (res.status === 429) {
+        rateLimited = true;
+        continue;
+      }
+      if (!res.ok) {
+        console.error('OpenRouter error:', model, res.status, (await res.text()).slice(0, 300));
+        continue;
+      }
+
+      // 본문 스트리밍도 타임아웃 대상이므로 try 안에서 읽는다
+      const data = await res.json();
+      const text = data?.choices?.[0]?.message?.content;
+      const menus = parseMenusFromText(text);
+      if (menus) return { menus };
     } catch (e) {
       console.error('OpenRouter timeout/network:', model, e?.name);
-      continue;
     }
-
-    if (res.status === 429) {
-      rateLimited = true;
-      continue;
-    }
-    if (!res.ok) {
-      console.error('OpenRouter error:', model, res.status, (await res.text()).slice(0, 300));
-      continue;
-    }
-
-    const data = await res.json();
-    const text = data?.choices?.[0]?.message?.content;
-    const menus = parseMenusFromText(text);
-    if (menus) return { menus };
   }
   return { failed: true, rateLimited };
 }
@@ -193,9 +198,12 @@ export async function POST(request) {
       return Response.json({ error: 'No AI provider configured' }, { status: 500 });
     }
 
+    // Vercel 함수 한도(60초) 안에서 끝나도록 전체 데드라인 설정
+    const deadline = Date.now() + 50000;
+
     let anyRateLimited = false;
     for (const provider of providers) {
-      const result = await provider(image, mimeType);
+      const result = await provider(image, mimeType, deadline);
       if (result.menus) {
         return Response.json({ menus: cleanMenus(result.menus) });
       }
