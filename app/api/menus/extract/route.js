@@ -119,48 +119,71 @@ async function extractWithGemini(image, mimeType, deadline) {
   return { failed: true, rateLimited };
 }
 
+// 단일 모델 시도 — 성공 시 메뉴 배열 반환, 실패 시 throw
+async function attemptOpenRouterModel(model, image, mimeType) {
+  const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model,
+      max_tokens: 4000,
+      reasoning: { enabled: false },
+      messages: [{
+        role: 'user',
+        content: [
+          { type: 'image_url', image_url: { url: `data:${mimeType};base64,${image}` } },
+          { type: 'text', text: EXTRACT_PROMPT },
+        ],
+      }],
+    }),
+    signal: AbortSignal.timeout(PER_MODEL_TIMEOUT_MS),
+  });
+
+  if (res.status === 429) {
+    const e = new Error(`${model}: rate limited`);
+    e.rateLimited = true;
+    throw e;
+  }
+  if (!res.ok) {
+    throw new Error(`${model}: status ${res.status} ${(await res.text()).slice(0, 200)}`);
+  }
+
+  // 본문 스트리밍도 타임아웃 대상이므로 여기서 함께 읽는다
+  const data = await res.json();
+  const menus = parseMenusFromText(data?.choices?.[0]?.message?.content);
+  if (!menus) throw new Error(`${model}: parse failed`);
+  return menus;
+}
+
 async function extractWithOpenRouter(image, mimeType, deadline) {
   let rateLimited = false;
-  for (const model of OPENROUTER_MODELS) {
+  const note = (e) => {
+    if (e?.rateLimited) rateLimited = true;
+    console.error('OpenRouter:', e?.message || e?.name);
+  };
+
+  // 상위 2개 모델을 동시에 시도 — 먼저 성공하는 쪽 채택 (혼잡 시 대기 제거)
+  const [primary, secondary, ...rest] = OPENROUTER_MODELS;
+  try {
+    const menus = await Promise.any([
+      attemptOpenRouterModel(primary, image, mimeType),
+      attemptOpenRouterModel(secondary, image, mimeType),
+    ]);
+    return { menus };
+  } catch (agg) {
+    (agg?.errors || [agg]).forEach(note);
+  }
+
+  // 둘 다 실패하면 나머지 모델을 순차 시도
+  for (const model of rest) {
     if (Date.now() > deadline) break;
     try {
-      const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model,
-          max_tokens: 4000,
-          reasoning: { enabled: false },
-          messages: [{
-            role: 'user',
-            content: [
-              { type: 'image_url', image_url: { url: `data:${mimeType};base64,${image}` } },
-              { type: 'text', text: EXTRACT_PROMPT },
-            ],
-          }],
-        }),
-        signal: AbortSignal.timeout(PER_MODEL_TIMEOUT_MS),
-      });
-
-      if (res.status === 429) {
-        rateLimited = true;
-        continue;
-      }
-      if (!res.ok) {
-        console.error('OpenRouter error:', model, res.status, (await res.text()).slice(0, 300));
-        continue;
-      }
-
-      // 본문 스트리밍도 타임아웃 대상이므로 try 안에서 읽는다
-      const data = await res.json();
-      const text = data?.choices?.[0]?.message?.content;
-      const menus = parseMenusFromText(text);
-      if (menus) return { menus };
+      return { menus: await attemptOpenRouterModel(model, image, mimeType) };
     } catch (e) {
-      console.error('OpenRouter timeout/network:', model, e?.name);
+      note(e);
     }
   }
   return { failed: true, rateLimited };

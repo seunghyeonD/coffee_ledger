@@ -10,8 +10,9 @@ import { canDo } from '@/lib/roles';
 import Modal from '@/components/Modal';
 import NearbySearch from '@/components/NearbySearch';
 
-// 메뉴판 사진을 리사이즈해서 base64(JPEG)로 변환 (업로드 용량 절약)
-function imageToBase64(file, maxDim = 1568) {
+// 메뉴판 사진을 리사이즈해서 base64(JPEG)로 변환
+// 1024px가 인식 정확도를 유지하는 최소 크기 (실측: 800px부터 글자 깨짐)
+function imageToBase64(file, maxDim = 1024) {
   return new Promise((resolve, reject) => {
     const img = new Image();
     const url = URL.createObjectURL(file);
@@ -22,7 +23,7 @@ function imageToBase64(file, maxDim = 1568) {
       canvas.width = Math.round(img.width * scale);
       canvas.height = Math.round(img.height * scale);
       canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-      resolve(canvas.toDataURL('image/jpeg', 0.85).split(',')[1]);
+      resolve(canvas.toDataURL('image/jpeg', 0.8).split(',')[1]);
     };
     img.onerror = () => {
       URL.revokeObjectURL(url);
