@@ -34,7 +34,7 @@ export default function ResetPasswordPage() {
     return (
       <div className="auth-page">
         <div className="auth-card">
-          <div className="auth-logo">{'\u2615'} {t('common:appName')}</div>
+          <div className="auth-logo"><span className="auth-logo-mark">{'\u2615'}</span><span>{t('common:appName')}</span></div>
           <div className="auth-success">
             <h3>{t('passwordChanged')}</h3>
             <p>{t('passwordChangedDesc')}</p>
@@ -47,7 +47,7 @@ export default function ResetPasswordPage() {
   return (
     <div className="auth-page">
       <div className="auth-card">
-        <div className="auth-logo">{'\u2615'} {t('common:appName')}</div>
+        <div className="auth-logo"><span className="auth-logo-mark">{'\u2615'}</span><span>{t('common:appName')}</span></div>
         <h2 className="auth-title">{t('newPasswordTitle')}</h2>
         <p className="auth-subtitle">{t('newPasswordDesc')}</p>
 

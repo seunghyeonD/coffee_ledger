@@ -12,34 +12,48 @@ input, select, textarea {
   font-size: 16px;
 }
 
+/* 빈티지 커피하우스 팔레트 — 크림 종이 위 에스프레소 브라운 */
 :root {
-  --bg: #f5f5f7;
-  --sidebar-bg: #1a1a2e;
-  --sidebar-hover: #16213e;
-  --sidebar-active: #0f3460;
-  --card-bg: #ffffff;
-  --text: #1d1d1f;
-  --text-secondary: #6e6e73;
-  --primary: #5b4a3f;
-  --primary-light: #8b7355;
-  --primary-dark: #3e2f23;
-  --accent: #e77f67;
-  --success: #26de81;
-  --danger: #fc5c65;
-  --warning: #fed330;
-  --border: #e5e5e7;
-  --radius: 12px;
-  --radius-sm: 8px;
-  --shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.1);
+  --bg: #f1e9db;
+  --sidebar-bg: #241610;
+  --sidebar-hover: #342117;
+  --sidebar-active: #4a2f1f;
+  --card-bg: #faf6ec;
+  --text: #2c2016;
+  --text-secondary: #8a7663;
+  --primary: #4a2f1f;
+  --primary-light: #8b6b4f;
+  --primary-dark: #33200f;
+  --accent: #b0713a;
+  --success: #4e8a5d;
+  --danger: #c4554d;
+  --warning: #d9a441;
+  --border: #e3d6c3;
+  --radius: 14px;
+  --radius-sm: 10px;
+  --shadow: 0 2px 12px rgba(58, 38, 21, 0.07);
+  --shadow-lg: 0 12px 40px rgba(58, 38, 21, 0.16);
   --transition: 0.2s ease;
+  --font-serif: var(--font-display), 'Gowun Batang', Georgia, serif;
 }
 
 body {
-  background: var(--bg);
+  background:
+    radial-gradient(1100px 700px at 88% -10%, #f8f2e6 0%, transparent 55%),
+    radial-gradient(900px 600px at -10% 100%, #ece1cd 0%, transparent 50%),
+    var(--bg);
+  background-attachment: fixed;
   color: var(--text);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+}
+
+/* 제목·로고는 세리프로 — 커피하우스 간판 느낌 */
+h1, h2, h3,
+.sidebar-logo,
+.auth-logo {
+  font-family: var(--font-serif);
+  letter-spacing: -0.02em;
 }
 
 /* ===== Layout ===== */
@@ -106,6 +120,7 @@ body {
 .nav-item.active {
   background: var(--sidebar-active);
   font-weight: 600;
+  box-shadow: inset 3px 0 0 var(--accent);
 }
 .nav-icon {
   font-size: 18px;
@@ -1383,13 +1398,22 @@ body {
 }
 
 /* ===== Auth Pages ===== */
+/* 깊은 커피 원두 톤의 백드롭 — 카라멜 빛이 스며드는 어두운 로스터리 */
 .auth-page {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg);
+  background:
+    radial-gradient(1000px 600px at 82% 12%, rgba(186, 122, 62, 0.30), transparent 60%),
+    radial-gradient(800px 620px at 6% 88%, rgba(128, 78, 42, 0.35), transparent 62%),
+    linear-gradient(155deg, #2f1d10 0%, #1f1309 55%, #150c06 100%);
   padding: 20px;
+}
+
+/* 어두운 배경 위 로딩 문구는 크림색으로 */
+.auth-page .coffee-loader p {
+  color: #d9c9b5;
 }
 
 /* Coffee Loading Animation */
@@ -1491,12 +1515,13 @@ body {
 }
 
 .auth-card {
-  background: var(--card-bg);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-lg);
+  background: #f8f3e7;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 240, 214, 0.14);
+  box-shadow: 0 30px 80px rgba(10, 5, 2, 0.5);
   padding: 0;
   width: 100%;
-  max-width: 420px;
+  max-width: 440px;
   overflow: hidden;
 }
 
@@ -1563,18 +1588,39 @@ body {
 }
 
 .auth-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
   text-align: center;
-  font-size: 24px;
+  font-size: 30px;
   font-weight: 700;
-  margin-bottom: 24px;
-  color: var(--primary);
+  margin-bottom: 20px;
+  color: var(--primary-dark);
+}
+
+/* 원형 엠블럼 — 레트로 커피하우스 도장 느낌 */
+.auth-logo-mark {
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  border: 2px solid var(--primary);
+  outline: 1px solid rgba(74, 47, 31, 0.35);
+  outline-offset: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  background: #fffdf6;
+  margin-top: 6px;
 }
 
 .auth-title {
   text-align: center;
-  font-size: 20px;
+  font-size: 19px;
   font-weight: 600;
   margin-bottom: 24px;
+  color: var(--primary);
 }
 
 .auth-subtitle {
@@ -1591,10 +1637,13 @@ body {
 
 .auth-btn {
   width: 100%;
-  padding: 12px;
+  padding: 14px;
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 700;
   margin-top: 8px;
+  border-radius: 12px;
+  letter-spacing: 0.02em;
+  justify-content: center;
 }
 
 .auth-error {
@@ -1656,20 +1705,33 @@ body {
   line-height: 1.5;
 }
 
+/* "또는" 구분선 느낌의 회원가입 영역 — 레퍼런스의 아웃라인 보조 버튼 */
 .auth-switch {
   text-align: center;
   margin-top: 20px;
   font-size: 13px;
   color: var(--text-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: stretch;
 }
 
 .auth-switch button {
-  background: none;
-  border: none;
+  width: 100%;
+  padding: 13px;
+  background: transparent;
+  border: 1.5px solid var(--primary);
+  border-radius: 12px;
   color: var(--primary);
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 15px;
+  transition: var(--transition);
+}
+
+.auth-switch button:hover {
+  background: rgba(74, 47, 31, 0.06);
 }
 
 /* ===== Auth Terms ===== */

@@ -1,5 +1,5 @@
 import Script from 'next/script';
-import { Noto_Sans_KR } from 'next/font/google';
+import { Noto_Sans_KR, Gowun_Batang } from 'next/font/google';
 import { Analytics } from '@vercel/analytics/react';
 import './globals.css';
 import { AuthProvider } from '@/lib/auth';
@@ -9,6 +9,13 @@ import I18nProvider from '@/components/I18nProvider';
 const notoSansKR = Noto_Sans_KR({
   subsets: ['latin'],
   weight: ['300', '400', '500', '600', '700'],
+});
+
+// 빈티지 커피하우스 디스플레이 서체 (제목·로고용 한글 세리프)
+const gowunBatang = Gowun_Batang({
+  subsets: ['latin'],
+  weight: ['400', '700'],
+  variable: '--font-display',
 });
 
 export const metadata = {
@@ -64,7 +71,7 @@ export default function RootLayout({ children }) {
           crossOrigin="anonymous"
         />
       </head>
-      <body className={notoSansKR.className}>
+      <body className={`${notoSansKR.className} ${gowunBatang.variable}`}>
         <I18nProvider>
           <AuthProvider>
             <StoreProvider>

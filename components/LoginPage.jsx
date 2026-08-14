@@ -8,11 +8,12 @@ export default function LoginPage() {
   const { t } = useTranslation(['auth', 'common', 'legal']);
   const { signIn, signUp, verifyOtp, resetPassword } = useAuth();
 
+  // 커피하우스 톤 온 톤 — 로스팅 단계처럼 명도만 달리한 브라운 그라데이션
   const BANNERS = [
-    { text: t('heroTitle'), sub: t('feature1Title'), bg: 'linear-gradient(135deg, #3a2a1a 0%, #5c4033 100%)' },
-    { text: t('feature2Title'), sub: t('feature2Desc'), bg: 'linear-gradient(135deg, #4a90d9 0%, #357abd 100%)' },
-    { text: t('feature3Title'), sub: t('feature3Desc'), bg: 'linear-gradient(135deg, #27ae60 0%, #1e8449 100%)' },
-    { text: t('feature4Title'), sub: t('feature4Desc'), bg: 'linear-gradient(135deg, #e67e22 0%, #d35400 100%)' },
+    { text: t('heroTitle'), sub: t('feature1Title'), bg: 'linear-gradient(135deg, #33200f 0%, #5c4033 100%)' },
+    { text: t('feature2Title'), sub: t('feature2Desc'), bg: 'linear-gradient(135deg, #4a2f1f 0%, #7a5230 100%)' },
+    { text: t('feature3Title'), sub: t('feature3Desc'), bg: 'linear-gradient(135deg, #2e1c10 0%, #6b4a2b 100%)' },
+    { text: t('feature4Title'), sub: t('feature4Desc'), bg: 'linear-gradient(135deg, #5c4033 0%, #96703f 100%)' },
   ];
 
   const [mode, setMode] = useState('login');
@@ -145,7 +146,7 @@ export default function LoginPage() {
         <div className="auth-card">
           {bannerCarousel}
           <div className="auth-card-body">
-          <div className="auth-logo">{'\u2615'} {t('common:appName')}</div>
+          <div className="auth-logo"><span className="auth-logo-mark">{'\u2615'}</span><span>{t('common:appName')}</span></div>
           <div className="auth-success">
             <h3>{t('checkEmail')}</h3>
             <p><strong>{email}</strong> {t('resetLinkSent').split('\n').map((line, i) => <span key={i}>{line}<br /></span>)}</p>
@@ -167,7 +168,7 @@ export default function LoginPage() {
       <div className="auth-card">
         {bannerCarousel}
         <div className="auth-card-body">
-        <div className="auth-logo">{'\u2615'} {t('common:appName')}</div>
+        <div className="auth-logo"><span className="auth-logo-mark">{'\u2615'}</span><span>{t('common:appName')}</span></div>
         <h2 className="auth-title">
           {mode === 'signup'
             ? (signUpStep === 2 ? t('emailVerification') : t('signup'))

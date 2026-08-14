@@ -52,7 +52,7 @@ export default function CompanySelectPage() {
   return (
     <div className="auth-page">
       <div className="auth-card company-select-card">
-        <div className="auth-logo">{'\u2615'} {t('common:appName')}</div>
+        <div className="auth-logo"><span className="auth-logo-mark">{'\u2615'}</span><span>{t('common:appName')}</span></div>
         <h2 className="auth-title">{t('selectCompany')}</h2>
         <p className="auth-subtitle">{t('selectCompanyDesc')}</p>
 
