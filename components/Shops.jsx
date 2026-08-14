@@ -1,17 +1,40 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '@/lib/store';
 import { useAuth } from '@/lib/auth';
+import { authFetch } from '@/lib/api-fetch';
 import { formatMoney } from '@/lib/utils';
 import { canDo } from '@/lib/roles';
 import Modal from '@/components/Modal';
 import NearbySearch from '@/components/NearbySearch';
 
+// 메뉴판 사진을 리사이즈해서 base64(JPEG)로 변환 (업로드 용량 절약)
+function imageToBase64(file, maxDim = 1568) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(img.width * scale);
+      canvas.height = Math.round(img.height * scale);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL('image/jpeg', 0.85).split(',')[1]);
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('image load failed'));
+    };
+    img.src = url;
+  });
+}
+
 export default function Shops({ showToast }) {
   const { t } = useTranslation(['shops', 'common']);
-  const { shops, addShop, updateShop, deleteShop, addMenu, addMenusBulk, updateMenu, deleteMenu } = useStore();
+  const { shops, addShop, updateShop, deleteShop, addMenu, addMenusBulk, updateMenu, deleteMenu, companyId } = useStore();
   const { userRole } = useAuth();
   const [shopModal, setShopModal] = useState(null);
   const [menuModal, setMenuModal] = useState(null);
@@ -19,6 +42,8 @@ export default function Shops({ showToast }) {
   const [showNearby, setShowNearby] = useState(false);
   const [expandedShop, setExpandedShop] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [extracting, setExtracting] = useState(false);
+  const photoInputRef = useRef(null);
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth <= 480);
@@ -98,6 +123,48 @@ export default function Shops({ showToast }) {
 
   const handleBulkTextChange = (text) => {
     setBulkModal(prev => ({ ...prev, text, parsed: parseBulkText(text) }));
+  };
+
+  const handleMenuPhoto = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+
+    setExtracting(true);
+    try {
+      const image = await imageToBase64(file);
+      const res = await authFetch('/api/menus/extract', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ companyId, image, mimeType: 'image/jpeg' }),
+      });
+
+      if (res.status === 429) {
+        showToast(t('extractRateLimited'));
+        return;
+      }
+      if (!res.ok) {
+        showToast(t('extractFailed'));
+        return;
+      }
+
+      const { menus } = await res.json();
+      if (!menus || menus.length === 0) {
+        showToast(t('extractEmpty'));
+        return;
+      }
+
+      const lines = menus.map(m => `${m.name} ${m.price}`).join('\n');
+      setBulkModal(prev => {
+        const text = prev.text.trim() ? `${prev.text.trim()}\n${lines}` : lines;
+        return { ...prev, text, parsed: parseBulkText(text) };
+      });
+      showToast(t('extractSuccess', { count: menus.length }));
+    } catch (err) {
+      showToast(t('extractFailed'));
+    } finally {
+      setExtracting(false);
+    }
   };
 
   const handleBulkImport = async () => {
@@ -244,6 +311,21 @@ export default function Shops({ showToast }) {
             <p className="bulk-import-desc" style={{ whiteSpace: 'pre-line' }}>
               {t('batchDesc')}
             </p>
+            <button
+              type="button"
+              className="btn-photo-extract"
+              onClick={() => photoInputRef.current?.click()}
+              disabled={extracting}
+            >
+              {extracting ? t('extracting') : `📷 ${t('photoExtract')}`}
+            </button>
+            <input
+              ref={photoInputRef}
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={handleMenuPhoto}
+            />
             <div className="bulk-import-format">
               <strong>{t('supportedFormats')}</strong>
               <code>아메리카노 4500</code>

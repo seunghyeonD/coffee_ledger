@@ -1122,6 +1122,30 @@ body {
   opacity: 0.6;
 }
 
+/* 메뉴판 사진 추출 버튼 */
+.btn-photo-extract {
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 10px;
+  border: 1px dashed var(--primary);
+  border-radius: var(--radius-sm);
+  background: var(--card-bg);
+  color: var(--primary);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn-photo-extract:hover {
+  background: rgba(91, 74, 63, 0.06);
+}
+
+.btn-photo-extract:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
 /* 이메일 발송 모달 선택 옵션 */
 .email-mode-options {
   display: flex;
