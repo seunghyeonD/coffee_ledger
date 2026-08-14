@@ -4,8 +4,12 @@ import { verifyAuth, isValidUUID } from '@/lib/api-auth';
 // 공급자 우선순위: Gemini(GEMINI_API_KEY) → OpenRouter(OPENROUTER_API_KEY)
 // 둘 다 무료 티어 사용 가능 — 한도 초과 시 429 반환
 
+// Vercel 함수 실행 시간 상한 (기본 10초로는 모델 폴백이 불가능)
+export const maxDuration = 60;
+
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const PER_MODEL_TIMEOUT_MS = 22000; // 모델당 최대 대기 시간
 
 const GEMINI_MODELS = ['gemini-flash-latest', 'gemini-flash-lite-latest'];
 const OPENROUTER_MODELS = [
@@ -17,7 +21,9 @@ const OPENROUTER_MODELS = [
 const EXTRACT_PROMPT = `이 이미지는 카페/음식점 메뉴판입니다. 메뉴 이름과 가격을 추출해주세요.
 
 규칙:
-- 가격은 원화 숫자로만 (예: "4.5" 또는 "4,500"으로 표기된 경우 4500)
+- 가격은 원화 숫자로만
+- 한국 카페 메뉴판의 소수점 가격은 천원 단위 축약입니다: "4.5" → 4500, "6.0" → 6000, "10.5" → 10500
+- "4,500" 또는 "4500원" → 4500
 - HOT/ICE 가격이 다르면 별도 항목으로 (예: "아메리카노(ICE)")
 - 사이즈별 가격이 다르면 별도 항목으로 (예: "카페라떼(L)")
 - 가격을 읽을 수 없는 메뉴는 제외
@@ -41,12 +47,24 @@ function parseMenusFromText(text) {
 }
 
 function cleanMenus(menus) {
-  return (menus || [])
+  let cleaned = (menus || [])
     .filter(m => m && typeof m.name === 'string' && m.name.trim())
     .map(m => ({
       name: String(m.name).trim().slice(0, 100),
-      price: Number.isFinite(Number(m.price)) ? Math.round(Number(m.price)) : 0,
+      price: Number.isFinite(Number(m.price)) ? Number(m.price) : 0,
     }))
+    .filter(m => m.price > 0);
+
+  // 천원 단위 축약 보정 1: 개별 항목이 소수점/한자리 수로 반환된 경우 (4.5 → 4500, 6 → 6000)
+  cleaned = cleaned.map(m => (m.price < 100 ? { ...m, price: m.price * 1000 } : m));
+
+  // 천원 단위 축약 보정 2: 전체가 1000 미만이면 실제 원화일 리 없으므로 10배씩 올림 (450 → 4500)
+  while (cleaned.length > 0 && cleaned.every(m => m.price < 1000)) {
+    cleaned = cleaned.map(m => ({ ...m, price: m.price * 10 }));
+  }
+
+  return cleaned
+    .map(m => ({ ...m, price: Math.round(m.price) }))
     .filter(m => m.price > 0 && m.price < 10000000);
 }
 
@@ -63,14 +81,21 @@ async function extractWithGemini(image, mimeType) {
 
   let rateLimited = false;
   for (const model of GEMINI_MODELS) {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${process.env.GEMINI_API_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      }
-    );
+    let res;
+    try {
+      res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${process.env.GEMINI_API_KEY}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+          signal: AbortSignal.timeout(PER_MODEL_TIMEOUT_MS),
+        }
+      );
+    } catch (e) {
+      console.error('Gemini timeout/network:', model, e?.name);
+      continue;
+    }
 
     if (res.status === 429) {
       rateLimited = true;
@@ -92,23 +117,32 @@ async function extractWithGemini(image, mimeType) {
 async function extractWithOpenRouter(image, mimeType) {
   let rateLimited = false;
   for (const model of OPENROUTER_MODELS) {
-    const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model,
-        messages: [{
-          role: 'user',
-          content: [
-            { type: 'image_url', image_url: { url: `data:${mimeType};base64,${image}` } },
-            { type: 'text', text: EXTRACT_PROMPT },
-          ],
-        }],
-      }),
-    });
+    let res;
+    try {
+      res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model,
+          max_tokens: 4000,
+          reasoning: { enabled: false },
+          messages: [{
+            role: 'user',
+            content: [
+              { type: 'image_url', image_url: { url: `data:${mimeType};base64,${image}` } },
+              { type: 'text', text: EXTRACT_PROMPT },
+            ],
+          }],
+        }),
+        signal: AbortSignal.timeout(PER_MODEL_TIMEOUT_MS),
+      });
+    } catch (e) {
+      console.error('OpenRouter timeout/network:', model, e?.name);
+      continue;
+    }
 
     if (res.status === 429) {
       rateLimited = true;

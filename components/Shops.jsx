@@ -137,6 +137,7 @@ export default function Shops({ showToast }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ companyId, image, mimeType: 'image/jpeg' }),
+        signal: AbortSignal.timeout(75000),
       });
 
       if (res.status === 429) {
