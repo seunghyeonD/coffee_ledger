@@ -2909,3 +2909,229 @@ h1, h2, h3,
   font-family: inherit;
   width: 100%;
 }
+
+/* ============================================================
+   Modern Polish Layer — 2026 리프레시
+   기능·마크업 변경 없이 컴포넌트 전반을 현대적으로 다듬는 오버라이드.
+   (커피하우스 팔레트 유지, 마이크로 인터랙션·깊이감·포커스 링 추가)
+   ============================================================ */
+
+/* --- 인터랙션 기본기: 버튼 --- */
+.btn,
+.btn-primary,
+.btn-export,
+.btn-icon,
+.btn-photo-extract,
+.member-noti-btn,
+.page-tab {
+  transition: transform 0.15s ease, box-shadow 0.15s ease,
+    background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.btn:hover,
+.btn-icon:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(58, 38, 21, 0.1);
+}
+
+.btn:active,
+.btn-icon:active,
+.btn-primary:active,
+.btn-export:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: none;
+}
+
+.btn-primary {
+  background: linear-gradient(180deg, #5a3a24 0%, var(--primary) 100%);
+  border-color: transparent;
+  box-shadow: 0 2px 8px rgba(51, 32, 15, 0.22);
+}
+
+.btn-primary:hover {
+  background: linear-gradient(180deg, #4f331f 0%, var(--primary-dark) 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(51, 32, 15, 0.28);
+}
+
+.btn-export {
+  background: linear-gradient(180deg, #bd7f45 0%, var(--accent) 100%);
+  box-shadow: 0 2px 8px rgba(176, 113, 58, 0.3);
+}
+
+.btn-export:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(176, 113, 58, 0.35);
+  opacity: 1;
+}
+
+/* --- 카드: 얇은 보더 + 호버 리프트 --- */
+.card,
+.member-card,
+.shop-card,
+.notification-card,
+.summary-member-card {
+  border: 1px solid var(--border);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover,
+.member-card:hover,
+.shop-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* 통계 카드 좌측 컬러바를 팔레트 안으로 */
+.card-members {
+  border-left: 4px solid var(--primary-light);
+}
+
+.card-value {
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- 모달: 블러 백드롭 + 스프링 등장 --- */
+.modal-overlay {
+  background: rgba(24, 14, 7, 0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  animation: overlayFadeIn 0.18s ease;
+}
+
+.modal-content {
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  animation: modalSpringIn 0.28s cubic-bezier(0.34, 1.3, 0.64, 1);
+}
+
+@keyframes overlayFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalSpringIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* --- 입력 요소: 크림 필 + 카라멜 포커스 링 --- */
+.form-group input,
+.form-group select,
+.form-group textarea,
+.select-input,
+.threshold-input,
+.bulk-import-textarea {
+  background: #fffdf7;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus,
+.select-input:focus,
+.threshold-input:focus,
+.bulk-import-textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(176, 113, 58, 0.16);
+}
+
+/* --- 테이블: 정돈된 헤더 + 부드러운 행 호버 --- */
+.table-wrap th {
+  background: #f2ead9;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border);
+}
+
+.table-wrap tr:hover td {
+  background: #f5efe2;
+}
+
+.table-wrap tr:last-child td {
+  border-bottom: none;
+}
+
+/* --- 토스트: 에스프레소 필 + 블러 --- */
+.toast {
+  background: rgba(41, 25, 13, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 999px;
+  padding: 12px 26px;
+  box-shadow: 0 12px 32px rgba(24, 14, 6, 0.35);
+  border: 1px solid rgba(255, 236, 210, 0.12);
+}
+
+/* --- 사이드바: 부드러운 네비게이션 --- */
+.nav-item {
+  border-radius: 10px;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.nav-item:hover {
+  transform: translateX(2px);
+}
+
+/* --- 스크롤바·선택 영역·포커스까지 브랜드 톤 --- */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d3c1a6;
+  border-radius: 999px;
+  border: 2px solid var(--bg);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #c1ab8b;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::selection {
+  background: rgba(176, 113, 58, 0.28);
+}
+
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* --- 페이지 진입 애니메이션 --- */
+.main-content > * {
+  animation: pageFadeIn 0.3s ease both;
+}
+
+@keyframes pageFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* --- 모션 최소화 설정 존중 --- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
