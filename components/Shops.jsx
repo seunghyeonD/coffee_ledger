@@ -33,6 +33,28 @@ function imageToBase64(file, maxDim = 1024) {
   });
 }
 
+// 메뉴명 키워드로 카테고리 추정 (표시·필터용 — 데이터 변경 없음)
+const CATEGORY_RULES = [
+  ['라떼', ['라떼', '라테']],
+  ['커피', ['커피', '아메리카노', '에스프레소', '콜드브루', '모카', '마키아토', '아포가토', '아포카토', '비엔나']],
+  ['스무디', ['스무디', '프라페', '쉐이크', '셰이크', '요거트', '주스']],
+  ['에이드', ['에이드', '아이스티', '피지오']],
+  ['티', ['티', '차', '홍차', '녹차', '허브', '블렌드']],
+  ['디저트', ['케이크', '케익', '브레드', '쿠키', '크로플', '와플', '베이글', '스콘', '마카롱', '빵', '샌드위치', '토스트', '버거', '세트']],
+];
+
+const CATEGORY_EMOJI = {
+  '라떼': '🥛', '커피': '☕', '스무디': '🧋', '에이드': '🍹',
+  '티': '🍵', '디저트': '🍰', '기타': '🍽️',
+};
+
+function getCategory(name) {
+  for (const [cat, keywords] of CATEGORY_RULES) {
+    if (keywords.some(k => name.includes(k))) return cat;
+  }
+  return '기타';
+}
+
 export default function Shops({ showToast }) {
   const { t } = useTranslation(['shops', 'common']);
   const { shops, addShop, updateShop, deleteShop, addMenu, addMenusBulk, updateMenu, deleteMenu, companyId } = useStore();
@@ -44,7 +66,15 @@ export default function Shops({ showToast }) {
   const [expandedShop, setExpandedShop] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
   const [extracting, setExtracting] = useState(false);
+  const [menuSearch, setMenuSearch] = useState({});
+  const [menuFilter, setMenuFilter] = useState({});
   const photoInputRef = useRef(null);
+
+  // 하단 통계
+  const allMenus = shops.flatMap(s => s.menus);
+  const avgPrice = allMenus.length > 0
+    ? Math.round(allMenus.reduce((sum, m) => sum + m.price, 0) / allMenus.length)
+    : 0;
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth <= 480);
@@ -187,7 +217,10 @@ export default function Shops({ showToast }) {
   return (
     <>
       <div className="page-header">
-        <h1>{t('title')}</h1>
+        <div>
+          <h1>{t('title')}</h1>
+          <p className="page-subtitle">{t('subtitle')}</p>
+        </div>
         {canDo(userRole, 'addShop') && (
           <div style={{ display: 'flex', gap: 8 }}>
             <button className="btn" onClick={() => setShowNearby(true)}>
@@ -201,57 +234,150 @@ export default function Shops({ showToast }) {
       </div>
 
       <div className="shops-grid">
-        {shops.map(s => (
+        {shops.map(s => {
+          const search = (menuSearch[s.id] || '').trim().toLowerCase();
+          const filter = menuFilter[s.id] || '\uC804\uCCB4';
+          const categories = [...new Set(s.menus.map(m => getCategory(m.name)))];
+          const visibleMenus = s.menus.filter(m => {
+            if (search && !m.name.toLowerCase().includes(search)) return false;
+            if (filter !== '\uC804\uCCB4' && getCategory(m.name) !== filter) return false;
+            return true;
+          });
+
+          return (
           <div key={s.id} className={`shop-card ${isMobile && expandedShop !== s.id ? 'shop-collapsed' : ''}`}>
             <div
-              className="shop-card-header"
-              style={{ background: s.color }}
+              className="shop-card-top"
               onClick={() => isMobile && setExpandedShop(expandedShop === s.id ? null : s.id)}
             >
-              <h3>
+              <span className="shop-avatar" style={{ background: s.color }}>{'\u2615'}</span>
+              <h3 className="shop-title">
                 {s.name}
                 {isMobile && <span className="shop-toggle-icon">{expandedShop === s.id ? '\u25B2' : '\u25BC'}</span>}
-                {isMobile && <span className="shop-menu-count">{t('menuCount', { count: s.menus.length })}</span>}
               </h3>
+              <span className="shop-count-badge">{s.menus.length}</span>
               {canDo(userRole, 'updateShop') && (
                 <div className="shop-actions" onClick={e => e.stopPropagation()}>
                   <button className="btn btn-sm" onClick={() => setShopModal({ id: s.id, name: s.name, color: s.color })}>{t('common:edit')}</button>
-                  <button className="btn btn-sm" onClick={() => handleDeleteShop(s.id)}>{t('common:delete')}</button>
+                  <button className="btn btn-sm text-danger" onClick={() => handleDeleteShop(s.id)}>{t('common:delete')}</button>
                 </div>
               )}
             </div>
-            <div className="shop-menu-list">
-              {s.menus.length === 0 ? (
-                <div className="empty-state">{t('noMenu')}</div>
-              ) : (
-                s.menus.map(m => (
-                  <div key={m.id} className="menu-item">
-                    <span className="menu-item-name">{m.name}</span>
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                      <span className="menu-item-price">{formatMoney(m.price)}</span>
-                      {canDo(userRole, 'updateMenu') && (
-                      <div className="menu-item-actions">
-                        <button className="btn btn-sm" onClick={() => setMenuModal({ shopId: s.id, menuId: m.id, name: m.name, price: m.price })}>{t('common:edit')}</button>
-                        <button className="btn btn-sm text-danger" onClick={() => handleDeleteMenu(s.id, m.id)}>{t('common:delete')}</button>
-                      </div>
-                    )}
-                    </div>
+
+            <div className="shop-card-body">
+              {s.menus.length > 0 && (
+                <>
+                  <div className="menu-search">
+                    <input
+                      type="text"
+                      value={menuSearch[s.id] || ''}
+                      onChange={e => setMenuSearch(prev => ({ ...prev, [s.id]: e.target.value }))}
+                      placeholder={t('searchMenu')}
+                    />
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                      <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+                    </svg>
                   </div>
-                ))
+
+                  {categories.length > 1 && (
+                    <div className="menu-chips">
+                      {['\uC804\uCCB4', ...categories].map(cat => (
+                        <button
+                          key={cat}
+                          className={`menu-chip ${filter === cat ? 'active' : ''}`}
+                          style={filter === cat ? { background: s.color, borderColor: s.color } : undefined}
+                          onClick={() => setMenuFilter(prev => ({ ...prev, [s.id]: cat }))}
+                        >
+                          {cat === '\uC804\uCCB4' ? t('categoryAll') : cat}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </>
               )}
+
+              <div className="shop-menu-list">
+                {s.menus.length === 0 ? (
+                  <div className="empty-state">{t('noMenu')}</div>
+                ) : visibleMenus.length === 0 ? (
+                  <div className="empty-state">{t('noSearchResult')}</div>
+                ) : (
+                  visibleMenus.map(m => (
+                    <div key={m.id} className="menu-row">
+                      <span className="menu-thumb">{CATEGORY_EMOJI[getCategory(m.name)]}</span>
+                      <div className="menu-info">
+                        <span className="menu-name">{m.name}</span>
+                        <span className="menu-price">{formatMoney(m.price)}</span>
+                      </div>
+                      {canDo(userRole, 'updateMenu') && (
+                        <div className="menu-row-actions">
+                          <button
+                            className="menu-icon-btn edit"
+                            title={t('common:edit')}
+                            onClick={() => setMenuModal({ shopId: s.id, menuId: m.id, name: m.name, price: m.price })}
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+                            </svg>
+                          </button>
+                          <button
+                            className="menu-icon-btn del"
+                            title={t('common:delete')}
+                            onClick={() => handleDeleteMenu(s.id, m.id)}
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M3 6h18" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                            </svg>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
+
               {canDo(userRole, 'addMenu') && (
                 <div className="shop-menu-add-actions">
-                  <button className="btn-add-menu" onClick={() => setMenuModal({ shopId: s.id, name: '', price: '' })}>
+                  <button
+                    className="menu-add-dashed"
+                    style={{ color: s.color, borderColor: s.color }}
+                    onClick={() => setMenuModal({ shopId: s.id, name: '', price: '' })}
+                  >
                     {t('addMenu')}
                   </button>
-                  <button className="btn-add-menu btn-bulk-menu" onClick={() => setBulkModal({ shopId: s.id, text: '', parsed: [] })}>
-                    {t('batchRegister')}
+                  <button className="menu-bulk-outline" onClick={() => setBulkModal({ shopId: s.id, text: '', parsed: [] })}>
+                    {'\u2601\uFE0F'} {t('batchRegister')}
                   </button>
                 </div>
               )}
             </div>
           </div>
-        ))}
+          );
+        })}
+      </div>
+
+      <div className="shops-stats">
+        <div className="stat-card">
+          <div>
+            <div className="stat-label">{t('totalMenus')}</div>
+            <div className="stat-value">{allMenus.length}<span className="stat-unit">{t('countUnit')}</span></div>
+          </div>
+          <span className="stat-icon" style={{ background: 'var(--primary)' }}>{'\u{1F4CB}'}</span>
+        </div>
+        <div className="stat-card">
+          <div>
+            <div className="stat-label">{t('totalShops')}</div>
+            <div className="stat-value">{shops.length}<span className="stat-unit">{t('countUnit')}</span></div>
+          </div>
+          <span className="stat-icon" style={{ background: 'var(--primary-light)' }}>{'\u{1F3EA}'}</span>
+        </div>
+        <div className="stat-card">
+          <div>
+            <div className="stat-label">{t('avgPrice')}</div>
+            <div className="stat-value">{avgPrice.toLocaleString()}<span className="stat-unit">{t('wonUnit')}</span></div>
+          </div>
+          <span className="stat-icon" style={{ background: 'var(--accent)' }}>{'\u20A9'}</span>
+        </div>
       </div>
 
       {showNearby && (

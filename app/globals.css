@@ -1398,16 +1398,15 @@ h1, h2, h3,
 }
 
 /* ===== Auth Pages ===== */
-/* 깊은 커피 원두 톤의 백드롭 — 카라멜 빛이 스며드는 어두운 로스터리 */
+/* 로스터리 실사 배경 (블러 보케) 위 크림 카드 */
 .auth-page {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   background:
-    radial-gradient(1000px 600px at 82% 12%, rgba(186, 122, 62, 0.30), transparent 60%),
-    radial-gradient(800px 620px at 6% 88%, rgba(128, 78, 42, 0.35), transparent 62%),
-    linear-gradient(155deg, #2f1d10 0%, #1f1309 55%, #150c06 100%);
+    linear-gradient(rgba(24, 14, 7, 0.28), rgba(20, 12, 6, 0.45)),
+    #1f1309 url('/login-bg.jpg') center / cover no-repeat;
   padding: 20px;
 }
 
@@ -3302,4 +3301,310 @@ a:focus-visible {
 .auth-switch button:hover {
   background: none;
   text-decoration: underline;
+}
+
+/* ===== 메뉴 관리 리디자인 (레퍼런스 시안 반영) ===== */
+.page-subtitle {
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.shop-card-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 18px 12px;
+}
+
+.shop-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 21px;
+  color: #fff;
+  flex-shrink: 0;
+  box-shadow: 0 4px 10px rgba(58, 38, 21, 0.18);
+}
+
+.shop-title {
+  font-size: 17px;
+  font-weight: 700;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.shop-count-badge {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 2px 10px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.shop-card-body {
+  padding: 0 18px 18px;
+}
+
+/* 메뉴 검색 */
+.menu-search {
+  position: relative;
+  margin-bottom: 10px;
+}
+
+.menu-search input {
+  width: 100%;
+  padding: 9px 38px 9px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fffdf7;
+  font-size: 14px;
+  transition: var(--transition);
+}
+
+.menu-search input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(176, 113, 58, 0.14);
+}
+
+.menu-search svg {
+  position: absolute;
+  right: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #a08a71;
+  pointer-events: none;
+}
+
+/* 카테고리 칩 */
+.menu-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.menu-chip {
+  padding: 5px 13px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--card-bg);
+  color: var(--text-secondary);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.menu-chip:hover {
+  border-color: var(--primary-light);
+  color: var(--primary);
+}
+
+.menu-chip.active {
+  color: #fff;
+}
+
+/* 메뉴 행 */
+.menu-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 2px;
+  border-bottom: 1px solid #efe6d5;
+}
+
+.menu-row:last-child {
+  border-bottom: none;
+}
+
+.menu-thumb {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.menu-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.35;
+}
+
+.menu-name {
+  font-size: 14px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.menu-price {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.menu-row-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.menu-icon-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.menu-icon-btn.edit {
+  background: rgba(74, 47, 31, 0.06);
+  border: 1px solid rgba(74, 47, 31, 0.18);
+  color: var(--primary);
+}
+
+.menu-icon-btn.edit:hover {
+  background: rgba(74, 47, 31, 0.12);
+}
+
+.menu-icon-btn.del {
+  background: rgba(196, 85, 77, 0.07);
+  border: 1px solid rgba(196, 85, 77, 0.25);
+  color: var(--danger);
+}
+
+.menu-icon-btn.del:hover {
+  background: rgba(196, 85, 77, 0.14);
+}
+
+/* 메뉴 추가 (점선) + 일괄 등록 */
+.shop-menu-add-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.menu-add-dashed {
+  width: 100%;
+  padding: 11px;
+  border: 1.5px dashed currentColor;
+  border-radius: 12px;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.menu-add-dashed:hover {
+  filter: brightness(0.85);
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.menu-bulk-outline {
+  width: 100%;
+  padding: 11px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card-bg);
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.menu-bulk-outline:hover {
+  border-color: var(--primary-light);
+  color: var(--primary);
+}
+
+/* 하단 통계 카드 */
+.shops-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.stat-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 18px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.stat-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.stat-value {
+  font-size: 26px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.5px;
+}
+
+.stat-unit {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-left: 3px;
+}
+
+.stat-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: #fff;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(58, 38, 21, 0.18);
+}
+
+/* 모바일 접힘: 카드 본문 전체 숨김 */
+.shop-collapsed .shop-card-body {
+  display: none;
+}
+
+/* 바리스타 로고 lockup — multiply 블렌드로 카드 크림 배경과 이음새 없이 */
+.auth-logo-img {
+  display: block;
+  width: 82%;
+  max-width: 330px;
+  margin: 4px auto 20px;
+  mix-blend-mode: multiply;
 }
