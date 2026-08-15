@@ -1336,7 +1336,8 @@ h1, h2, h3,
 }
 
 .summary-week-table th {
-  background: #e8e2f0;
+  background: var(--bg);
+  color: var(--primary);
   font-weight: 600;
   padding: 8px 12px;
   text-align: center;
@@ -3364,6 +3365,18 @@ a:focus-visible {
 
 .shop-card-body {
   padding: 0 18px 18px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+/* 카드가 max-height에 걸리면 메뉴 리스트만 줄어들고 하단 버튼(메뉴 추가·일괄 등록)은 항상 보이게 */
+.shop-card-body > * {
+  flex-shrink: 0;
+}
+.shop-card-body .shop-menu-list {
+  flex: 1 1 auto;
+  min-height: 60px;
 }
 
 /* 메뉴 검색 */
