@@ -1,0 +1,14 @@
+{
+  "cafesFound": "{{count}}件のカフェが見つかりました",
+  "kakaoInitFailed": "カカオマップの初期化に失敗しました。JavaScriptキーを確認してください。",
+  "kakaoLoadFailed": "カカオマップSDKの読み込みに失敗しました。キーまたはドメイン設定を確認してください。",
+  "loadingMap": "地図を読み込み中...",
+  "locationPermission": "位置情報の許可をお願いします。",
+  "locationUnavailable": "位置情報を利用できません。",
+  "noCafes": "周辺にカフェがありません。",
+  "title": "周辺カフェ検索",
+  "within10km": "10km以内",
+  "within1km": "1km以内",
+  "within3km": "3km以内",
+  "within5km": "5km以内"
+}

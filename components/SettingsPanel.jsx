@@ -69,16 +69,14 @@ export default function SettingsPage({ showToast }) {
           <div className="settings-section">
             <p className="settings-desc">{t("language.description")}</p>
             <div className="language-selector">
-              {["ko", "en"].map((lng) => (
+              {["ko", "en", "ja"].map((lng) => (
                 <button
                   key={lng}
                   className={`language-btn ${currentLang === lng ? "active" : ""}`}
                   onClick={() => handleLanguageChange(lng)}
                 >
                   <span className="language-flag">
-                    {lng === "ko"
-                      ? "\uD83C\uDDF0\uD83C\uDDF7"
-                      : "\uD83C\uDDFA\uD83C\uDDF8"}
+                    {{ ko: "\uD83C\uDDF0\uD83C\uDDF7", en: "\uD83C\uDDFA\uD83C\uDDF8", ja: "\uD83C\uDDEF\uD83C\uDDF5" }[lng]}
                   </span>
                   <span>{t(`language.${lng}`)}</span>
                 </button>

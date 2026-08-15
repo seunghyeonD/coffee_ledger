@@ -18,6 +18,7 @@
   "language": {
     "description": "Choose the language for the service.",
     "en": "English",
+    "ja": "日本語",
     "ko": "한국어",
     "title": "Language"
   },

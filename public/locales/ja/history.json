@@ -1,0 +1,13 @@
+{
+  "allMembers": "全メンバー",
+  "amount": "金額",
+  "confirmDelete": "この注文を削除しますか？",
+  "date": "日付",
+  "member": "メンバー",
+  "menu": "メニュー",
+  "noOrders": "注文履歴がありません。",
+  "note": "備考",
+  "orderDeleted": "注文が削除されました。",
+  "shop": "店舗",
+  "title": "注文履歴"
+}

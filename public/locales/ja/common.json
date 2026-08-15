@@ -1,0 +1,46 @@
+{
+  "appName": "コーヒー台帳",
+  "add": "追加",
+  "cancel": "キャンセル",
+  "checkSupabase": "Supabaseの接続を確認してください。",
+  "close": "確認",
+  "count": "{{count}}件",
+  "dayNames": [
+    "日",
+    "月",
+    "火",
+    "水",
+    "木",
+    "金",
+    "土"
+  ],
+  "delete": "削除",
+  "deleteFailed": "削除に失敗しました",
+  "edit": "編集",
+  "error": "エラー: {{message}}",
+  "loadFailed": "データの読み込みに失敗しました",
+  "loading": "読み込み中...",
+  "loadingData": "データを読み込んでいます...",
+  "logout": "ログアウト",
+  "none": "なし",
+  "preparingCoffee": "コーヒーを準備中...",
+  "processing": "処理中...",
+  "save": "保存",
+  "saveFailed": "保存に失敗しました",
+  "supabaseError": "Supabase接続に失敗しました",
+  "today": "今日",
+  "unknown": "不明",
+  "weekdays": [
+    "月",
+    "火",
+    "水",
+    "木",
+    "金"
+  ],
+  "weekends": [
+    "土",
+    "日"
+  ],
+  "won": "ウォン",
+  "yearMonth": "{{year}}年{{month}}月"
+}

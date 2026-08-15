@@ -1,0 +1,14 @@
+{
+  "dashboard": "ダッシュボード",
+  "dashboardShort": "ホーム",
+  "exportExcel": "Excelエクスポート",
+  "history": "注文履歴",
+  "historyShort": "履歴",
+  "members": "メンバー管理",
+  "membersShort": "メンバー",
+  "settings": "設定",
+  "shops": "メニュー管理",
+  "shopsShort": "メニュー",
+  "summary": "月次サマリー",
+  "summaryShort": "サマリー"
+}

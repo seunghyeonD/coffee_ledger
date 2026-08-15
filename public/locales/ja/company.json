@@ -1,0 +1,17 @@
+{
+  "companyName": "企業名",
+  "companyNamePlaceholder": "例: わが社",
+  "create": "作成する",
+  "createFailed": "企業の作成に失敗しました。",
+  "createNew": "+ 新しい企業を作成",
+  "creating": "作成中...",
+  "inviteCode": "招待コード",
+  "inviteCodePlaceholder": "例: ABC123",
+  "join": "参加する",
+  "joinFailed": "企業への参加に失敗しました。",
+  "joinWithCode": "招待コードで参加",
+  "joining": "参加中...",
+  "selectCompany": "企業選択",
+  "selectCompanyDesc": "管理する企業を選択するか、新しく作成してください。",
+  "switchCompany": "企業切り替え"
+}
