@@ -644,9 +644,20 @@ h1, h2, h3,
   gap: 4px;
 }
 .shop-actions .btn-sm {
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
-  color: #fff;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+.shop-actions .btn-sm:hover {
+  background: var(--bg);
+  color: var(--text);
+}
+.shop-actions .btn-sm.text-danger {
+  color: var(--danger);
+}
+.shop-actions .btn-sm.text-danger:hover {
+  background: rgba(196, 85, 77, 0.08);
+  border-color: var(--danger);
 }
 
 .shop-menu-list {
