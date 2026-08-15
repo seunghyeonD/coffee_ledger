@@ -20,18 +20,18 @@ export async function GET(request) {
 
   const supabase = getSupabaseAdmin();
 
-  const { data: ucData, error: ucError } = await supabase
-    .from('user_companies')
-    .select('user_id, role, name')
-    .eq('company_id', companyId);
+  // 멤버 목록과 이메일 매핑용 유저 목록을 병렬 조회 (순차 왕복 제거)
+  const [ucResult, usersResult] = await Promise.all([
+    supabase.from('user_companies').select('user_id, role, name').eq('company_id', companyId),
+    supabase.auth.admin.listUsers({ page: 1, perPage: 1000 }),
+  ]);
 
+  const { data: ucData, error: ucError } = ucResult;
   if (ucError) {
     return NextResponse.json({ error: 'Failed to fetch members' }, { status: 500 });
   }
 
-  // 유저별 getUserById N회 호출 대신 listUsers 1회로 이메일 매핑 (역할 관리 로딩 속도 개선)
-  const { data: usersData } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 });
-  const emailById = new Map((usersData?.users || []).map(u => [u.id, u.email]));
+  const emailById = new Map((usersResult.data?.users || []).map(u => [u.id, u.email]));
 
   const members = (ucData || []).map(uc => ({
     userId: uc.user_id,
