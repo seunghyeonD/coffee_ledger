@@ -43,6 +43,7 @@
   "notificationSent": "Charge request notification sent to {{name}}.",
   "pushNoToken": "The matched user hasn't enabled push notifications. Try email (📧) instead.",
   "pushUserNotFound": "No account matching '{{name}}' — push unavailable. Try email (📧) instead.",
+  "roleManagement": "Role Management",
   "sendChargeEmail": "Send charge request email",
   "sendChargeNotification": "Send charge request push notification",
   "sendEmailBtn": "Send",

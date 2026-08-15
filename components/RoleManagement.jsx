@@ -7,7 +7,7 @@ import { canDo, getRoleLabel } from '@/lib/roles';
 
 const ROLE_KEYS = ['master', 'admin', 'assistant', 'user'];
 
-// 계정 유저의 역할·이름·소속 관리 (멤버 관리 페이지 하단 섹션)
+// 계정 유저의 역할·이름·소속 관리 (멤버 관리 헤더의 역할 관리 모달에서 렌더링)
 export default function RoleManagement({ showToast }) {
   const { t } = useTranslation(['settings', 'common']);
   const { userRole, user, getCompanyMembers, updateMemberRole, updateMemberName, removeMember } = useAuth();
@@ -67,8 +67,7 @@ export default function RoleManagement({ showToast }) {
   };
 
   return (
-    <div className="role-section">
-      <h2 className="role-section-title">{t('tabs.roles')}</h2>
+    <div className="role-embedded">
       <p className="settings-desc">{t('roles.description')}</p>
       {loading ? (
         <div className="empty-state">{t('roles.loading')}</div>

@@ -3782,21 +3782,20 @@ a:focus-visible {
   box-shadow: none;
 }
 
-/* ===== 역할 관리 섹션 (멤버 관리 페이지 하단) ===== */
-.role-section {
-  margin-top: 28px;
-  background: var(--card-bg);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding: 22px 24px;
+/* ===== 역할 관리 (멤버 관리 헤더 버튼 → 모달) ===== */
+.page-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
 }
 
-.role-section-title {
-  font-size: 19px;
-  margin-bottom: 2px;
-}
-
-.role-section .settings-desc {
+.role-embedded .settings-desc {
   margin-bottom: 14px;
+}
+
+.role-embedded .role-management-list {
+  max-height: 58vh;
+  overflow-y: auto;
+  padding-right: 2px;
 }

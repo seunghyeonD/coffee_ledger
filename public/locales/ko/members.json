@@ -43,6 +43,7 @@
   "notificationSent": "{{name}}님에게 충전 요청 알림을 보냈습니다.",
   "pushNoToken": "상대가 푸시 알림을 켜지 않아 보낼 수 없습니다. 이메일(📧)로 보내보세요.",
   "pushUserNotFound": "{{name}}'과 일치하는 계정이 없어 푸시를 보낼 수 없습니다. 이메일(📧)로 보내보세요.",
+  "roleManagement": "역할 관리",
   "sendChargeEmail": "충전 요청 이메일 보내기",
   "sendChargeNotification": "충전 요청 푸시 알림 보내기",
   "sendEmailBtn": "보내기",

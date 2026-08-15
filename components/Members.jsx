@@ -18,6 +18,7 @@ export default function Members({ showToast }) {
   const [memberModal, setMemberModal] = useState(null);
   const [depositModal, setDepositModal] = useState(null);
   const [emailModal, setEmailModal] = useState(null);
+  const [roleModalOpen, setRoleModalOpen] = useState(false);
 
   const handleSaveMember = async (e) => {
     e.preventDefault();
@@ -189,11 +190,18 @@ export default function Members({ showToast }) {
           <h1>{t('title')}</h1>
           <p className="page-subtitle">{t('subtitle')}</p>
         </div>
-        {canDo(userRole, 'addMember') && (
-          <button className="btn btn-primary" onClick={() => setMemberModal({ name: '', email: '', balance: 0 })}>
-            {t('addMember')}
-          </button>
-        )}
+        <div className="page-header-actions">
+          {canDo(userRole, 'manageRoles') && (
+            <button className="btn" onClick={() => setRoleModalOpen(true)}>
+              {t('roleManagement')}
+            </button>
+          )}
+          {canDo(userRole, 'addMember') && (
+            <button className="btn btn-primary" onClick={() => setMemberModal({ name: '', email: '', balance: 0 })}>
+              {t('addMember')}
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="members-grid">
@@ -291,7 +299,14 @@ export default function Members({ showToast }) {
         })}
       </div>
 
-      <RoleManagement showToast={showToast} />
+      <Modal
+        open={roleModalOpen}
+        onClose={() => setRoleModalOpen(false)}
+        title={t('roleManagement')}
+        large
+      >
+        {roleModalOpen && <RoleManagement showToast={showToast} />}
+      </Modal>
 
       <Modal
         open={!!memberModal}
