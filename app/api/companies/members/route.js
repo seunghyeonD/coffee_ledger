@@ -29,17 +29,16 @@ export async function GET(request) {
     return NextResponse.json({ error: 'Failed to fetch members' }, { status: 500 });
   }
 
-  const members = await Promise.all(
-    (ucData || []).map(async (uc) => {
-      const { data: userData } = await supabase.auth.admin.getUserById(uc.user_id);
-      return {
-        userId: uc.user_id,
-        email: userData?.user?.email || uc.user_id,
-        role: uc.role,
-        name: uc.name || '',
-      };
-    })
-  );
+  // 유저별 getUserById N회 호출 대신 listUsers 1회로 이메일 매핑 (역할 관리 로딩 속도 개선)
+  const { data: usersData } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 });
+  const emailById = new Map((usersData?.users || []).map(u => [u.id, u.email]));
+
+  const members = (ucData || []).map(uc => ({
+    userId: uc.user_id,
+    email: emailById.get(uc.user_id) || uc.user_id,
+    role: uc.role,
+    name: uc.name || '',
+  }));
 
   return NextResponse.json(members);
 }

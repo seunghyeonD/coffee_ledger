@@ -29,14 +29,16 @@ export default function Home() {
     setTimeout(() => setToast(''), 2500);
   };
 
+  // company 객체 identity가 아닌 id 기준으로만 재로드 (토큰 갱신 시 불필요한 전체 리로드 방지)
+  const companyId = company?.id;
   useEffect(() => {
-    if (company) {
+    if (companyId) {
       setError(null);
-      init(company.id).catch(e => setError(e.message || t('supabaseError')));
+      init(companyId).catch(e => setError(e.message || t('supabaseError')));
     } else {
       reset();
     }
-  }, [company, init, reset]);
+  }, [companyId, init, reset]);
 
   if (authLoading) {
     return (
