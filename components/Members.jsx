@@ -8,6 +8,7 @@ import { authFetch } from '@/lib/api-fetch';
 import { formatMoney } from '@/lib/utils';
 import { canDo } from '@/lib/roles';
 import Modal from '@/components/Modal';
+import RoleManagement from '@/components/RoleManagement';
 
 export default function Members({ showToast }) {
   const { t } = useTranslation(['members', 'common']);
@@ -289,6 +290,8 @@ export default function Members({ showToast }) {
           );
         })}
       </div>
+
+      <RoleManagement showToast={showToast} />
 
       <Modal
         open={!!memberModal}
