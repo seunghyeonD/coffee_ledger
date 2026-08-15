@@ -3,16 +3,35 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '@/lib/store';
+import { useAuth } from '@/lib/auth';
+import { canDo } from '@/lib/roles';
 import { formatMoney, formatDate } from '@/lib/utils';
+import Modal from '@/components/Modal';
 import OrderModal from '@/components/modals/OrderModal';
 
 export default function Dashboard({ showToast }) {
   const { t } = useTranslation(['dashboard', 'common']);
   const { members, getMemberBalance, getOrdersByMonth, getTotalBalance } = useStore();
+  const { company, userRole, updateCompanyInfo } = useAuth();
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth());
   const [selectedDate, setSelectedDate] = useState(null);
+  const [accountModal, setAccountModal] = useState(null);
+
+  const bankAccount = company?.bank_account || '';
+  const canManageCompany = canDo(userRole, 'manageCompany');
+
+  const handleSaveAccount = async (e) => {
+    e.preventDefault();
+    try {
+      await updateCompanyInfo({ bank_account: accountModal.value.trim() || null });
+      setAccountModal(null);
+      showToast(t('dashboard:accountSaved'));
+    } catch (err) {
+      showToast(t('dashboard:accountSaveFailed'));
+    }
+  };
 
   const ym = `${year}-${String(month + 1).padStart(2, '0')}`;
   const monthOrders = getOrdersByMonth(ym);
@@ -69,20 +88,43 @@ export default function Dashboard({ showToast }) {
     <>
       <div className="page-header">
         <h1>{t('dashboard:title')}</h1>
-        <div className="account-info">
-          <span className="account-label">{t('dashboard:depositAccount')}</span>
-          <button
-            className="account-copy-btn"
-            onClick={() => {
-              navigator.clipboard.writeText('1002963587753').then(() => {
-                showToast(t('dashboard:accountCopied'));
-              });
-            }}
-          >
-            {t('dashboard:bankAccount')}
-            <span className="copy-icon">{'\u{1F4CB}'}</span>
-          </button>
-        </div>
+        {(bankAccount || canManageCompany) && (
+          <div className="account-info">
+            {bankAccount ? (
+              <>
+                <span className="account-label">{t('dashboard:depositAccount')}</span>
+                <button
+                  className="account-copy-btn"
+                  onClick={() => {
+                    // 계좌번호(숫자·하이픈)만 추출해 복사, 없으면 전체 텍스트
+                    const digits = bankAccount.replace(/[^\d-]/g, '');
+                    navigator.clipboard.writeText(digits || bankAccount).then(() => {
+                      showToast(t('dashboard:accountCopied'));
+                    });
+                  }}
+                >
+                  {bankAccount}
+                  <span className="copy-icon">{'\u{1F4CB}'}</span>
+                </button>
+                {canManageCompany && (
+                  <button
+                    className="menu-icon-btn edit"
+                    title={t('dashboard:accountEdit')}
+                    onClick={() => setAccountModal({ value: bankAccount })}
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+                    </svg>
+                  </button>
+                )}
+              </>
+            ) : (
+              <button className="btn" onClick={() => setAccountModal({ value: '' })}>
+                {t('dashboard:accountRegister')}
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="balance-cards">
@@ -154,6 +196,34 @@ export default function Dashboard({ showToast }) {
           })}
         </div>
       </div>
+
+      <Modal
+        open={!!accountModal}
+        onClose={() => setAccountModal(null)}
+        title={t('dashboard:accountModalTitle')}
+        small
+      >
+        {accountModal && (
+          <form onSubmit={handleSaveAccount}>
+            <div className="form-group">
+              <label>{t('dashboard:depositAccount')}</label>
+              <input
+                type="text"
+                value={accountModal.value}
+                onChange={e => setAccountModal({ value: e.target.value })}
+                placeholder={t('dashboard:accountPlaceholder')}
+                maxLength={60}
+                autoFocus
+              />
+            </div>
+            <p className="settings-desc" style={{ fontSize: 12, marginBottom: 16 }}>{t('dashboard:accountDesc')}</p>
+            <div className="form-actions">
+              <button type="button" className="btn" onClick={() => setAccountModal(null)}>{t('common:cancel')}</button>
+              <button type="submit" className="btn btn-primary">{t('common:save')}</button>
+            </div>
+          </form>
+        )}
+      </Modal>
 
       {selectedDate && (
         <OrderModal

@@ -29,7 +29,5 @@
   "menuName": "Menu",
   "amount": "Amount",
   "fileName": "CoffeeLedger_{{date}}.xlsx",
-  "downloaded": "Report downloaded!",
-  "bankAccount": "Woori Bank 1002963587753",
-  "depositAccount": "Deposit Account"
+  "downloaded": "Report downloaded!"
 }

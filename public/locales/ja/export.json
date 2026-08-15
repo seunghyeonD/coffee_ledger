@@ -29,7 +29,5 @@
   "menuName": "メニュー",
   "amount": "金額",
   "fileName": "コーヒー台帳_{{date}}.xlsx",
-  "downloaded": "レポートがダウンロードされます！",
-  "bankAccount": "ウリ銀行 1002963587753",
-  "depositAccount": "入金口座"
+  "downloaded": "レポートがダウンロードされます！"
 }

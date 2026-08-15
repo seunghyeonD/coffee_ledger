@@ -29,7 +29,5 @@
   "menuName": "메뉴",
   "amount": "금액",
   "fileName": "커피대장부_{{date}}.xlsx",
-  "downloaded": "보고서가 다운로드됩니다!",
-  "bankAccount": "우리은행 1002963587753",
-  "depositAccount": "입금계좌"
+  "downloaded": "보고서가 다운로드됩니다!"
 }
